@@ -3,13 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="無料で遊べるひらがな・漢字タイピング練習ゲーム。初級から上級までレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競えます。">
-<meta content="https://s-typing.surge.sh/" property="og:url">
+<meta name="description" content="無料で遊べるひらがな・文章タイピング練習ゲーム。初級から上級までレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競えます。">
+<meta content="https://s-typing.f5.si/" property="og:url">
 <meta content="シンプルタイピング" property="og:title">
-<meta content="無料で遊べるひらがな・漢字タイピング練習ゲーム。初級から上級までレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競えます。" property="og:description">
+<meta content="無料で遊べるひらがな・文章タイピング練習ゲーム。初級から上級までレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競えます。" property="og:description">
 <meta content="website" property="og:type">
 <meta content="シンプルタイピング" property="og:site_name">
-<title>シンプルタイピング｜ひらがな・漢字タイピング練習ゲーム</title>
+<title>シンプルタイピング｜ひらがな・文章タイピング練習ゲーム</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "WebSite",
+  "name": "シンプルタイピング",
+  "url": "https://s-typing.f5.si/"
+}
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
 
@@ -22,13 +30,37 @@
     --hanko-deep:#7e2019;
     --gold:#b8933f;
     --line:#c9bb9a;
+    --panel-bg:rgba(255,253,246,0.55);
+    --panel-bg-soft:rgba(255,253,246,0.5);
+    --input-bg:rgba(255,253,246,0.7);
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root{
+      --washi:#1c1a17;
+      --washi-deep:#141210;
+      --ink:#ece5d6;
+      --ink-soft:#c9bfa9;
+      --hanko:#d9584a;
+      --hanko-deep:#f07264;
+      --gold:#d9b45f;
+      --line:#4a4438;
+      --panel-bg:rgba(40,36,30,0.55);
+      --panel-bg-soft:rgba(40,36,30,0.5);
+      --input-bg:rgba(40,36,30,0.7);
+    }
   }
 
   *{box-sizing:border-box;}
 
+  html{
+    height:100%;
+  }
+
   body{
     margin:0;
     min-height:100vh;
+    min-height:100dvh;
     background:
       radial-gradient(circle at 15% 20%, rgba(184,147,63,0.08), transparent 40%),
       radial-gradient(circle at 85% 80%, rgba(168,53,42,0.06), transparent 45%),
@@ -101,7 +133,7 @@
   }
 
   .panel{
-    background:rgba(255,253,246,0.55);
+    background:var(--panel-bg);
     border:1px solid var(--line);
     border-radius:4px;
     padding:28px;
@@ -364,7 +396,7 @@
     font-family:'Zen Kaku Gothic New', sans-serif;
     border:1.5px solid var(--line);
     border-radius:3px;
-    background:rgba(255,253,246,0.7);
+    background:var(--input-bg);
     color:var(--ink);
     outline:none;
     letter-spacing:0.08em;
@@ -443,7 +475,7 @@
     padding:14px 8px;
     border:1px solid var(--line);
     border-radius:3px;
-    background:rgba(255,253,246,0.5);
+    background:var(--panel-bg-soft);
   }
 
   .stat-value{
@@ -666,6 +698,7 @@ let opponentScore = 0;
 let searchCountdownTimer = null;
 let onlineTimerId = null;
 let onlineTimeLeft = 100;
+let countdownTimerId = null;
 
 function fitSpacerToViewport(){
   imeSpacerEl.style.height = "0px";
@@ -780,12 +813,13 @@ function startOnlineCountdown(){
   countdownEl.classList.add("visible");
   let count = 3;
   countdownNumberEl.textContent = count;
-  const t = setInterval(() => {
+  clearInterval(countdownTimerId);
+  countdownTimerId = setInterval(() => {
     count--;
     if(count > 0){
       countdownNumberEl.textContent = count;
     } else {
-      clearInterval(t);
+      clearInterval(countdownTimerId);
       countdownEl.classList.remove("visible");
       beginOnlineMatch();
     }
@@ -857,6 +891,8 @@ function handleOnlineSubmit(typed){
 
 function finishOnlineGame(msg){
   clearInterval(onlineTimerId);
+  clearInterval(countdownTimerId);
+  countdownEl.classList.remove("visible");
   isOnlineMode = false;
   gameEl.classList.remove("visible");
   headerEl.classList.remove("hidden");
