@@ -11,6 +11,7 @@
 <meta content="website" property="og:type">
 <meta content="シンプルタイピング" property="og:site_name">
 <title>シンプルタイピング｜ひらがな・文章タイピング練習ゲーム</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org/",
@@ -20,7 +21,7 @@
 }
 </script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap');
 
   :root{
     --washi:#f2ead9;
@@ -56,6 +57,7 @@
 
   html{
     height:100%;
+    overflow-x:hidden;
   }
 
   body{
@@ -72,7 +74,7 @@
       repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 3px),
       var(--washi);
     color:var(--ink);
-    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     display:flex;
     justify-content:center;
     padding:40px 16px;
@@ -101,7 +103,7 @@
   }
 
   h1{
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-weight:800;
     font-size:38px;
     margin:0;
@@ -159,7 +161,7 @@
     color:var(--washi);
     border:none;
     border-radius:3px;
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:14px;
     font-weight:600;
     letter-spacing:0.05em;
@@ -171,17 +173,22 @@
     background:var(--hanko-deep);
   }
 
-  .mute-btn{
-    position:absolute;
-    top:10px;
-    right:10px;
-    padding:8px 12px;
-    background:var(--ink);
-    color:var(--washi);
-    border:none;
-    border-radius:3px;
-    cursor:pointer;
+  .mute-check-label{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:16px;
     font-size:13px;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+
+  .mute-check{
+    width:16px;
+    height:16px;
+    cursor:pointer;
+    accent-color:var(--hanko);
   }
 
   .end-game-btn{
@@ -193,29 +200,6 @@
     cursor:pointer;
     font-size:12px;
     margin-left:10px;
-  }
-
-  .seal{
-    position:absolute;
-    top:-14px;
-    right:-56px;
-    width:52px;
-    height:52px;
-    border:2.5px solid var(--hanko);
-    border-radius:6px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    transform:rotate(8deg);
-    opacity:0.85;
-  }
-
-  .seal span{
-    font-family:'Shippori Mincho', serif;
-    color:var(--hanko);
-    font-weight:800;
-    font-size:20px;
-    line-height:1;
   }
 
   .panel{
@@ -251,7 +235,7 @@
     background:transparent;
     border:none;
     border-right:1px solid var(--line);
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:14px;
     font-weight:600;
     color:var(--ink-soft);
@@ -285,7 +269,7 @@
     background:transparent;
     border:1.5px solid var(--line);
     border-radius:3px;
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:15px;
     font-weight:600;
     color:var(--ink-soft);
@@ -295,7 +279,7 @@
 
   .level-btn .sub{
     display:block;
-    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:11px;
     font-weight:400;
     color:var(--ink-soft);
@@ -332,7 +316,7 @@
     color:var(--washi);
     border:none;
     border-radius:3px;
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:16px;
     font-weight:600;
     letter-spacing:0.1em;
@@ -363,7 +347,7 @@
   }
 
   .status-title{
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:18px;
     font-weight:600;
     margin-bottom:10px;
@@ -390,7 +374,7 @@
   }
 
   .countdown-number{
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:88px;
     font-weight:800;
     color:var(--hanko);
@@ -455,7 +439,7 @@
   }
 
   #word-display{
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:46px;
     font-weight:600;
     letter-spacing:0.12em;
@@ -479,7 +463,7 @@
     width:100%;
     padding:16px 18px;
     font-size:22px;
-    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     border:1.5px solid var(--line);
     border-radius:3px;
     background:var(--input-bg);
@@ -527,7 +511,7 @@
   }
 
   .result-title{
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:14px;
     letter-spacing:0.3em;
     color:var(--gold);
@@ -535,7 +519,7 @@
   }
 
   .result-score{
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:64px;
     font-weight:800;
     color:var(--hanko);
@@ -565,7 +549,7 @@
   }
 
   .stat-value{
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:22px;
     font-weight:800;
     color:var(--ink);
@@ -587,7 +571,7 @@
 
   .ranking-title{
     text-align:center;
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:14px;
     font-weight:700;
     letter-spacing:0.1em;
@@ -627,7 +611,7 @@
   }
 
   .ranking-item .rank{
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-weight:700;
     color:var(--hanko);
   }
@@ -664,7 +648,7 @@
     background:transparent;
     border:1.5px solid var(--ink);
     border-radius:3px;
-    font-family:'Shippori Mincho', serif;
+    font-family:'BIZ UDPGothic', sans-serif;
     font-size:15px;
     color:var(--ink);
     cursor:pointer;
@@ -681,15 +665,11 @@
     .panel{padding:18px 14px;}
     .kicker{font-size:10px;}
     h1{font-size:26px;}
-    .seal{display:none;}
 
     .mode-btn{font-size:12px;padding:9px 6px;}
     .level-btn{font-size:12px;padding:10px 6px;}
     .level-btn .sub{font-size:9px;}
     .start-btn{font-size:13px;padding:10px 18px;}
-
-    header{padding-left:60px;padding-right:60px;}
-    .mute-btn{padding:6px 10px;font-size:11px;top:4px;right:0;}
 
     .status-title{font-size:15px;}
     .search-spinner{width:32px;height:32px;}
@@ -716,8 +696,6 @@
   <header id="site-header">
     <div class="kicker">SIMPLE TYPING</div>
     <h1>シンプルタイピング</h1>
-    <div class="seal"><span>打</span></div>
-    <button id="mute-btn" class="mute-btn">ミュート</button>
   </header>
 
   <div class="panel">
@@ -745,8 +723,13 @@
         <button class="start-btn online-btn" id="start-online-btn">オンライン対戦</button>
       </div>
 
+      <label class="mute-check-label">
+        <input type="checkbox" id="mute-btn" class="mute-check">
+        ミュート
+      </label>
+
       <div class="ranking-box hidden" id="ranking-box">
-        <div class="ranking-title">🏆 ランキング TOP20（総合スコア）</div>
+        <div class="ranking-title"><i class="fas fa-trophy"></i> ランキング TOP20（総合スコア）</div>
         <ol class="ranking-list" id="ranking-list"></ol>
       </div>
     </div>
@@ -887,7 +870,7 @@ const clickSoundEl = new Audio("sounds/click.mp3");
 const keySoundEl = new Audio("sounds/key.mp3");
 const correctSoundEl = new Audio("sounds/correct.mp3");
 const incorrectSoundEl = new Audio("sounds/incorrect.mp3");
-let isMuted = false;
+let isMuted = localStorage.getItem("isMuted") === "true";
 
 function playSound(baseAudio){
   if(isMuted) return;
@@ -906,9 +889,10 @@ inputEl.addEventListener("keydown", () => {
 });
 
 const muteBtn = document.getElementById("mute-btn");
-muteBtn.addEventListener("click", () => {
-  isMuted = !isMuted;
-  muteBtn.textContent = isMuted ? "ミュート解除" : "ミュート";
+muteBtn.checked = isMuted;
+muteBtn.addEventListener("change", () => {
+  isMuted = muteBtn.checked;
+  localStorage.setItem("isMuted", isMuted);
 });
 
 const rankingBoxEl = document.getElementById("ranking-box");
@@ -936,9 +920,9 @@ async function loadRanking(){
   const mode = currentMode;
   const level = currentLevel;
   const modeLabel = mode === "kanji" ? "文章" : "ひらがな";
-  rankingTitleEl.textContent = `🏆 ランキング TOP20（${modeLabel}・${levelLabels[level]}）`;
-  rankingListEl.innerHTML = `<li class="ranking-loading">読み込み中...</li>`;
-  rankingBoxEl.classList.remove("hidden");
+  rankingTitleEl.innerHTML = `<i class="fas fa-trophy"></i> ランキング TOP20（${modeLabel}・${levelLabels[level]}）`;
+  rankingBoxEl.classList.add("hidden");
+  rankingListEl.innerHTML = "";
   try{
     const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}`);
     if(requestId !== rankingRequestId) return;
@@ -970,7 +954,7 @@ async function submitScoreToRanking(score, mode, level){
       renderRanking(data.top20);
     }
     if(data.rank){
-      resultRankBadgeEl.textContent = `🏆 ランキング ${data.rank}位にランクインしました！`;
+      resultRankBadgeEl.innerHTML = `<i class="fas fa-trophy"></i> ランキング ${data.rank}位にランクインしました！`;
       resultRankBadgeEl.classList.add("visible");
     }
   }catch(e){
