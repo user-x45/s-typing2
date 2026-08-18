@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="シンプルタイピングの利用規約です。">
-<meta content="https://s-typing.f5.si/terms/" property="og:url">
+<meta content="https://s-typing.surge.sh/terms/" property="og:url">
 <meta content="利用規約｜シンプルタイピング" property="og:title">
 <meta content="シンプルタイピングの利用規約です。" property="og:description">
 <meta content="website" property="og:type">
@@ -20,11 +21,11 @@
   "@context": "https://schema.org/",
   "@type": "WebPage",
   "name": "利用規約｜シンプルタイピング",
-  "url": "https://s-typing.f5.si/terms/",
+  "url": "https://s-typing.surge.sh/terms/",
   "isPartOf": {
     "@type": "WebSite",
     "name": "シンプルタイピング",
-    "url": "https://s-typing.f5.si/"
+    "url": "https://s-typing.surge.sh/"
   }
 }
 </script>
@@ -32,40 +33,41 @@
   @import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap');
 
   :root{
-    --washi:#f2ead9;
-    --washi-deep:#e7dcc2;
-    --ink:#1f1c19;
-    --ink-soft:#3a352e;
+    --washi:#ffffff;
+    --washi-deep:#f4f4f5;
+    --ink:#18181b;
+    --ink-soft:#6b7280;
     --hanko:#a8352a;
     --gold:#b8933f;
-    --line:#c9bb9a;
-    --panel-bg:rgba(255,253,246,0.55);
+    --line:#e4e4e7;
+    --panel-bg:#ffffff;
   }
 
   @media (prefers-color-scheme: dark){
     :root{
-      --washi:#1c1a17;
-      --washi-deep:#141210;
-      --ink:#ece5d6;
-      --ink-soft:#c9bfa9;
+      --washi:#0f0f11;
+      --washi-deep:#17181a;
+      --ink:#f4f4f5;
+      --ink-soft:#9ca3af;
       --hanko:#d9584a;
       --gold:#d9b45f;
-      --line:#4a4438;
-      --panel-bg:rgba(40,36,30,0.55);
+      --line:#2a2b2e;
+      --panel-bg:#18181b;
     }
   }
 
   *{box-sizing:border-box;}
 
+  button, input, select, textarea{
+    font-family: inherit;
+  }
+
   body{
     margin:0;
     min-height:100vh;
-    background:
-      radial-gradient(circle at 15% 20%, rgba(184,147,63,0.08), transparent 40%),
-      radial-gradient(circle at 85% 80%, rgba(168,53,42,0.06), transparent 45%),
-      var(--washi);
+    background:var(--washi);
     color:var(--ink);
-    font-family:'BIZ UDPGothic', sans-serif;
+    font-family: "BIZ UDPGothic", "HiraginoSans-W2", "Hiragino Kaku Gothic ProN", Meiryo, "メイリオ", sans-serif;
     line-height:1.8;
     display:flex;
     justify-content:center;
@@ -80,7 +82,7 @@
   .panel{
     background:var(--panel-bg);
     border:1px solid var(--line);
-    border-radius:4px;
+    border-radius:12px;
     padding:32px 28px;
   }
 
@@ -128,7 +130,7 @@
     color:var(--hanko);
     text-decoration:none;
     border:1.5px solid var(--line);
-    border-radius:3px;
+    border-radius:10px;
     padding:8px 18px;
     cursor:pointer;
     background:none;
@@ -148,7 +150,7 @@
 <div class="stage">
   <div class="panel">
     <h1>利用規約</h1>
-    <p class="updated">最終更新日：2026年7月28日</p>
+    <p class="updated">最終更新日：2026年8月3日</p>
 
     <p>この利用規約（以下「本規約」といいます）は、シンプルタイピング（以下「本サービス」といいます）の利用条件を定めるものです。利用者の皆様（以下「ユーザー」といいます）には、本規約に同意の上、本サービスをご利用いただきます。</p>
 
@@ -156,7 +158,7 @@
     <p>本規約は、ユーザーと本サービス運営者（以下「運営者」といいます）との間の本サービスの利用に関わる一切の関係に適用されるものとします。</p>
 
     <h2>第2条（サービス内容）</h2>
-    <p>本サービスは、ひらがな・文章タイピングの練習およびオンライン対戦機能を無料で提供するウェブサービスです。運営者は、ユーザーへの事前の通知なく、本サービスの内容を変更、追加、または停止することができるものとします。</p>
+    <p>本サービスは、ひらがな・文章タイピングの練習、オンライン対戦機能（ランダムマッチングによる対戦およびフレンド対戦）を無料で提供するウェブサービスです。運営者は、ユーザーへの事前の通知なく、本サービスの内容を変更、追加、または停止することができるものとします。</p>
 
     <h2>第3条（アカウント・ログイン）</h2>
     <ol>
@@ -172,6 +174,7 @@
       <li>運営者または第三者の知的財産権、肖像権、プライバシー等の権利を侵害する行為</li>
       <li>本サービスのサーバーやネットワークの機能を破壊・妨害する行為</li>
       <li>不正なプログラムやツール（自動入力・不正操作プログラム等）を利用して対戦・ランキングの結果を操作する行為</li>
+      <li>フレンド対戦の招待コードを不特定多数に公開し、または対戦相手以外の第三者に不正に使用させる行為</li>
       <li>他のユーザーに対する嫌がらせ、誹謗中傷その他の迷惑行為</li>
       <li>複数のアカウントを不正に作成・使用する行為</li>
       <li>運営者が不適切と判断するその他の行為</li>
@@ -179,7 +182,9 @@
 
     <h2>第5条（対戦・ランキング機能について）</h2>
     <ol>
-      <li>オンライン対戦機能は、他のユーザーとの通信環境によりマッチングや通信が不安定になる場合があります。運営者は、通信障害等により生じた結果について責任を負わないものとします。</li>
+      <li>オンライン対戦機能（ランダムマッチングおよびフレンド対戦）は、他のユーザーとの通信環境によりマッチングや通信が不安定になる場合があります。運営者は、通信障害等により生じた結果について責任を負わないものとします。</li>
+      <li>フレンド対戦の招待コードは、発行から一定時間が経過した場合、または対戦成立後には自動的に無効となります。運営者は、不正利用等が確認された招待コードについて、事前の通知なく無効化することができるものとします。</li>
+      <li>招待コードの管理はユーザーの責任において行うものとし、招待コードの流出等により生じた損害について、運営者は責任を負わないものとします。</li>
       <li>ランキングに登録された表示名およびスコアは、本サービス内で他のユーザーに公開される場合があります。</li>
       <li>運営者は、不正行為が確認された場合、当該ユーザーのランキング記録を削除し、または本サービスの利用を制限することができるものとします。</li>
     </ol>
@@ -211,7 +216,7 @@
     <h2>第11条（準拠法・裁判管轄）</h2>
     <p>本規約の解釈にあたっては、日本法を準拠法とします。本サービスに関して紛争が生じた場合には、運営者の所在地を管轄する裁判所を専属的合意管轄とします。</p>
 
-    <a class="back-link" href="/">トップへ戻る</a>
+    <button class="back-link" onclick="if(location.hash === '#google'){window.close();}else{location.href='/';}">戻る</button>
   </div>
 </div>
 </body>
