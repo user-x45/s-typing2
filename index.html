@@ -91,7 +91,7 @@
   }
 
   body.game-active{
-    padding:16px 16px;
+    padding:clamp(8px,2vh,16px) 16px;
   }
 
   .stage{
@@ -372,7 +372,7 @@
     overflow:hidden;
   }
 
-  .mode-btn{
+  .mode-btn, .input-mode-btn{
     flex:1;
     padding:11px 8px;
     background:transparent;
@@ -385,7 +385,7 @@
     transition:all 0.2s ease;
   }
 
-  .mode-btn.active{
+  .mode-btn.active, .input-mode-btn.active{
     background:var(--hanko);
     color:var(--washi);
   }
@@ -534,8 +534,8 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:18px;
-    font-size:13px;
+    margin-bottom:clamp(8px,2vh,18px);
+    font-size:clamp(11px,2vh,13px);
     color:var(--ink-soft);
     letter-spacing:0.05em;
   }
@@ -546,7 +546,7 @@
     background:rgba(31,28,25,0.1);
     border-radius:12px;
     overflow:hidden;
-    margin-bottom:24px;
+    margin-bottom:clamp(12px,3vh,24px);
   }
 
   .timer-fill{
@@ -558,21 +558,21 @@
 
   .word-frame{
     text-align:center;
-    padding:36px 12px;
+    padding:clamp(14px,4vh,36px) 12px;
     background:var(--panel-bg-soft);
     border-radius:12px;
-    margin-bottom:26px;
+    margin-bottom:clamp(12px,3vh,26px);
   }
 
   .word-eyebrow{
-    font-size:11px;
+    font-size:clamp(10px,1.6vh,11px);
     letter-spacing:0.3em;
     color:var(--gold);
-    margin-bottom:12px;
+    margin-bottom:clamp(6px,1.5vh,12px);
   }
 
   #word-display{
-    font-size:46px;
+    font-size:clamp(22px,6vh,46px);
     font-weight:600;
     letter-spacing:0.12em;
     white-space:nowrap;
@@ -588,14 +588,63 @@
     color:var(--hanko);
   }
 
+  .sentence-reading-display{
+    display:none;
+    margin-top:4px;
+    font-size:clamp(11px,2vh,15px);
+    font-weight:600;
+    letter-spacing:0.08em;
+    line-height:1.5;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:clip;
+  }
+
+  .sentence-reading-display.visible{
+    display:block;
+  }
+
+  .sentence-reading-char{
+    display:inline-block;
+  }
+
+  .romaji-display{
+    margin-top:clamp(8px,2vh,16px);
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    font-size:clamp(15px,3.4vh,26px);
+    font-weight:700;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    overflow:hidden;
+    max-width:100%;
+  }
+
+  .romaji-display.shake{
+    animation:shake 0.3s ease;
+  }
+
+  .rchar{
+    display:inline-block;
+  }
+
+  .rchar.done{
+    color:var(--hanko);
+  }
+
+  .rchar.current .rtyped{
+    color:var(--hanko);
+  }
+
   .input-row{
     position:relative;
   }
 
   #typing-input{
     width:100%;
-    padding:16px 18px;
-    font-size:22px;
+    padding:clamp(10px,2.5vh,16px) 18px;
+    font-size:clamp(16px,3vh,22px);
     border:1.5px solid var(--line);
     border-radius:10px;
     background:var(--input-bg);
@@ -630,7 +679,7 @@
     font-size:12px;
     color:var(--ink-soft);
     opacity:0.65;
-    margin-top:10px;
+    margin-top:clamp(6px,1.5vh,10px);
     min-height:16px;
   }
 
@@ -1094,6 +1143,7 @@
     .hud{font-size:11px;}
     .word-eyebrow{font-size:10px;}
     #word-display{font-size:26px;}
+    .sentence-reading-display{font-size:11px;}
     #typing-input{font-size:16px;padding:12px 14px;}
     .hint{font-size:10px;}
 
@@ -1103,6 +1153,17 @@
     .stat-value{font-size:17px;}
     .stat-label{font-size:9px;}
     .retry-btn{font-size:13px;padding:10px 24px;}
+  }
+
+  @media (max-height:600px){
+    body.game-active{padding:6px 16px;}
+    .hud{margin-bottom:6px;font-size:11px;}
+    .timer-track{margin-bottom:8px;}
+    .word-frame{padding:10px 12px;margin-bottom:8px;}
+    .word-eyebrow{margin-bottom:4px;}
+    #word-display{font-size:clamp(20px,5vh,32px);}
+    #typing-input{padding:8px 14px;font-size:16px;}
+    .hint{margin-top:4px;min-height:14px;}
   }
 </style>
 </head>
@@ -1154,6 +1215,11 @@
         <button class="level-btn active" data-level="beginner">初級<span class="sub">10〜12文字</span></button>
         <button class="level-btn" data-level="intermediate">中級<span class="sub">12〜14文字</span></button>
         <button class="level-btn" data-level="advanced">上級<span class="sub">14文字以上</span></button>
+      </div>
+
+      <div class="mode-tabs input-mode-tabs">
+        <button class="input-mode-btn active" data-input-mode="realtime">リアルタイム</button>
+        <button class="input-mode-btn" data-input-mode="textbox">テキストボックス</button>
       </div>
 
       <div class="high-score-label setup-high-score" id="setup-high-score">ハイスコア 0</div>
@@ -1253,6 +1319,8 @@
       <div class="word-frame">
         <div class="word-eyebrow" id="level-label">初級</div>
         <div id="word-display"></div>
+        <div id="sentence-reading-display" class="sentence-reading-display"></div>
+        <div id="romaji-display" class="romaji-display hidden"></div>
       </div>
 
       <div class="ime-spacer" id="ime-spacer"></div>
@@ -1305,6 +1373,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@mogamoga1024/typing-jp@latest/dist/cdn/typing-jp.js"></script>
 <script>
 const customAlertOverlayEl = document.getElementById("custom-alert-overlay");
 const customAlertMessageEl = document.getElementById("custom-alert-message");
@@ -1602,6 +1671,11 @@ window.addEventListener("load", async () => {
   Promise.all([initialRankingLoadPromise, sessionLoadPromise]).finally(hideAppLoadingOverlay);
 });
 
+
+function katakanaToHiragana(str){
+  return (str || '').replace(/[\u30a1-\u30f6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+}
+
 const wordListCache = {};
 
 async function fetchWordList(mode, level){
@@ -1613,14 +1687,48 @@ async function fetchWordList(mode, level){
   return list;
 }
 
+const sentenceReadingCache = {};
+
+async function ensureSentenceReadings(level, words){
+  if(sentenceReadingCache[level]) return sentenceReadingCache[level];
+  try{
+    const res = await fetch(`words/sentence-${level}2.json`);
+    const readings = await res.json();
+    const map = {};
+    (words || []).forEach((word, i) => {
+      map[word] = readings[i] !== undefined ? readings[i] : word;
+    });
+    sentenceReadingCache[level] = map;
+    return map;
+  }catch(e){
+    sentenceReadingCache[level] = {};
+    return sentenceReadingCache[level];
+  }
+}
+
 async function ensureWordList(mode, level){
   const cacheKey = `${mode}-${level}`;
-  if(wordListCache[cacheKey]) return wordListCache[cacheKey];
-  try{
-    return await fetchWordList(mode, level);
-  }catch(e){
-    return [];
+  let list = wordListCache[cacheKey];
+  if(!list){
+    try{
+      list = await fetchWordList(mode, level);
+    }catch(e){
+      list = [];
+    }
   }
+  if(mode === "sentence" && !sentenceReadingCache[level]){
+    await ensureSentenceReadings(level, list);
+  }
+  return list;
+}
+
+function getCurrentWordReading(){
+  if(currentMode === "katakana") return katakanaToHiragana(currentWord);
+  if(currentMode === "sentence"){
+    const map = sentenceReadingCache[currentLevel] || {};
+    return map[currentWord] || currentWord;
+  }
+  return currentWord;
 }
 
 
@@ -1629,6 +1737,8 @@ const modeLabels = { hiragana:"ひらがな", katakana:"カタカナ", sentence:
 
 let currentMode = "hiragana";
 let currentLevel = "beginner";
+let inputMode = "realtime";
+let typingText = null;
 let currentWord = "";
 let usedWords = [];
 let score = 0;
@@ -1646,6 +1756,9 @@ const setupEl = document.getElementById("setup");
 const gameEl = document.getElementById("game");
 const resultEl = document.getElementById("result");
 const wordDisplayEl = document.getElementById("word-display");
+const sentenceReadingDisplayEl = document.getElementById("sentence-reading-display");
+const romajiDisplayEl = document.getElementById("romaji-display");
+const inputRowEl = document.querySelector(".input-row");
 const inputEl = document.getElementById("typing-input");
 const scoreLabelEl = document.getElementById("score-label");
 const timeLabelEl = document.getElementById("time-label");
@@ -1914,6 +2027,12 @@ function fitSpacerToViewport(){
 
 window.addEventListener("resize", fitSpacerToViewport);
 window.addEventListener("resize", fitWordDisplayFontSize);
+window.addEventListener("resize", fitRomajiDisplayFontSize);
+if(window.visualViewport){
+  window.visualViewport.addEventListener("resize", fitSpacerToViewport);
+  window.visualViewport.addEventListener("resize", fitWordDisplayFontSize);
+  window.visualViewport.addEventListener("resize", fitRomajiDisplayFontSize);
+}
 
 document.querySelectorAll(".mode-btn").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -2178,7 +2297,7 @@ function startOnlineCountdown(){
   }, 1000);
 }
 
-function beginOnlineMatch(){
+async function beginOnlineMatch(){
   logPlay(currentMode, currentLevel, friendRole ? "friend" : "online", opponentName);
   isOnlineMode = true;
   onlineIndex = 0;
@@ -2199,11 +2318,14 @@ function beginOnlineMatch(){
   timeLabelEl.textContent = `残り 100 秒`;
   timerFillEl.style.width = "100%";
   updateOpponentHud();
+  if(currentMode === "sentence"){
+    await ensureSentenceReadings(currentLevel, onlineWordDeck);
+  }
   currentWord = onlineWordDeck[0];
   renderWord();
   inputEl.value = "";
   inputEl.classList.remove("shake");
-  hintLabelEl.textContent = "Enterで確定";
+  resetHintLabel();
   fitSpacerToViewport();
   inputEl.focus();
   clearInterval(onlineTimerId);
@@ -2242,7 +2364,7 @@ function handleOnlineSubmit(typed){
   renderWord();
   inputEl.value = "";
   inputEl.classList.remove("shake");
-  hintLabelEl.textContent = "Enterで確定";
+  resetHintLabel();
   fitSpacerToViewport();
   playSound(correctSoundEl);
   if(ws && ws.readyState === WebSocket.OPEN){
@@ -2293,10 +2415,175 @@ function pickWord(){
   return word;
 }
 
+function renderSentenceReading(){
+  if(!sentenceReadingDisplayEl) return;
+  if(currentMode !== "sentence"){
+    sentenceReadingDisplayEl.classList.remove("visible");
+    sentenceReadingDisplayEl.innerHTML = "";
+    return;
+  }
+  const reading = getCurrentWordReading();
+  sentenceReadingDisplayEl.classList.add("visible");
+  sentenceReadingDisplayEl.innerHTML = [...reading].map(c => `<span class="sentence-reading-char">${c}</span>`).join("");
+}
+
 function renderWord(){
   wordDisplayEl.innerHTML = currentWord.split("").map(c => `<span class="char">${c}</span>`).join("");
+  renderSentenceReading();
   fitWordDisplayFontSize();
+  if(inputMode === "realtime"){
+    setupRealtimeWord();
+  }
+  updateSentenceProgressHighlight();
 }
+
+function resetHintLabel(){
+  hintLabelEl.textContent = inputMode === "realtime" ? "ローマ字でタイピングしよう" : "Enterで確定";
+}
+
+function updateInputModeUI(){
+  const isRealtime = inputMode === "realtime";
+  if(inputRowEl) inputRowEl.classList.toggle("hidden", isRealtime);
+  if(romajiDisplayEl) romajiDisplayEl.classList.toggle("hidden", !isRealtime);
+  if(inputMode !== "realtime"){
+    typingText = null;
+  }
+  resetHintLabel();
+  updateSentenceProgressHighlight();
+}
+
+document.querySelectorAll(".input-mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".input-mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    inputMode = btn.dataset.inputMode;
+    updateInputModeUI();
+    if(inputMode === "realtime" && gameEl.classList.contains("visible")){
+      setupRealtimeWord();
+    }
+  });
+});
+
+updateInputModeUI();
+
+function setupRealtimeWord(){
+  const reading = getCurrentWordReading();
+  try{
+    typingText = new TypingText(reading);
+  }catch(e){
+    typingText = null;
+  }
+  renderRomajiDisplay();
+}
+
+function renderRomajiDisplay(){
+  if(!romajiDisplayEl) return;
+  if(!typingText){
+    romajiDisplayEl.innerHTML = "";
+    return;
+  }
+  const doneHtml = `<span class="rchar done">${typingText.completedRoman}</span>`;
+  const restHtml = `<span class="rchar current">${typingText.remainingRoman}</span>`;
+  romajiDisplayEl.innerHTML = doneHtml + restHtml;
+  fitRomajiDisplayFontSize();
+}
+
+function fitRomajiDisplayFontSize(){
+  if(!romajiDisplayEl || romajiDisplayEl.classList.contains("hidden")) return;
+  const baseSize = parseFloat(getComputedStyle(romajiDisplayEl).fontSize);
+  const minSize = 10;
+  let size = baseSize;
+  romajiDisplayEl.style.fontSize = "";
+  while(romajiDisplayEl.scrollWidth > romajiDisplayEl.clientWidth && size > minSize){
+    size -= 1;
+    romajiDisplayEl.style.fontSize = `${size}px`;
+  }
+}
+
+function getRealtimeCompletedKanaCount(){
+  if(!typingText || currentMode !== "sentence") return 0;
+  const reading = getCurrentWordReading();
+  const remainingRoman = typingText.remainingRoman;
+  if(!remainingRoman) return [...reading].length;
+
+  const chars = [...reading];
+  for(let i = 0; i <= chars.length; i++){
+    const suffix = chars.slice(i).join("");
+    try{
+      const suffixTypingText = new TypingText(suffix);
+      if(suffixTypingText.remainingRoman === remainingRoman){
+        return i;
+      }
+    }catch(e){
+      break;
+    }
+  }
+  return 0;
+}
+
+function updateSentenceProgressHighlight(){
+  if(!sentenceReadingDisplayEl) return;
+  const readingChars = sentenceReadingDisplayEl.querySelectorAll(".sentence-reading-char");
+  readingChars.forEach(el => el.classList.remove("done"));
+}
+
+function shakeRomaji(){
+  if(!romajiDisplayEl) return;
+  romajiDisplayEl.classList.remove("shake");
+  void romajiDisplayEl.offsetWidth;
+  romajiDisplayEl.classList.add("shake");
+}
+
+function completeRealtimeWord(){
+  if(isOnlineMode){
+    handleOnlineSubmit(currentWord);
+    return;
+  }
+  score++;
+  totalCharsTyped += currentWord.length;
+  scoreLabelEl.textContent = `せいかい ${score} もん`;
+  playSound(correctSoundEl);
+  nextWord();
+}
+
+function handleRealtimeKey(key){
+  if(!typingText) return;
+  recordKeystrokeTiming();
+
+  let result;
+  try{
+    result = typingText.inputKey(key);
+  }catch(e){
+    return;
+  }
+
+  if(result === "unmatch"){
+    missCount++;
+    hintLabelEl.textContent = "ちがうキーです";
+    shakeRomaji();
+    playSound(incorrectSoundEl);
+    return;
+  }
+
+  playSound(keySoundEl);
+  hintLabelEl.textContent = "ローマ字でタイピングしよう";
+  renderRomajiDisplay();
+  updateSentenceProgressHighlight();
+
+  if(result === "complete"){
+    completeRealtimeWord();
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if(inputMode !== "realtime") return;
+  if(!gameEl.classList.contains("visible")) return;
+  if(!e.isTrusted) return;
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  if(e.key.length !== 1 || !/^[a-zA-Z\-]$/.test(e.key)) return;
+  e.preventDefault();
+  handleRealtimeKey(e.key.toLowerCase());
+});
 
 function fitWordDisplayFontSize(){
   const baseSize = parseFloat(getComputedStyle(wordDisplayEl).fontSize);
@@ -2311,13 +2598,16 @@ function fitWordDisplayFontSize(){
 
 function updateProgressHighlight(typed){
   const chars = wordDisplayEl.querySelectorAll(".char");
+  chars.forEach(el => el.classList.remove("done"));
+
+  if(inputMode !== "textbox") return;
+
   let stillCorrect = true;
   chars.forEach((el, i) => {
     if(stillCorrect && i < typed.length && typed[i] === currentWord[i]){
       el.classList.add("done");
-    } else {
+    }else{
       stillCorrect = false;
-      el.classList.remove("done");
     }
   });
 }
@@ -2327,7 +2617,7 @@ function nextWord(){
   renderWord();
   inputEl.value = "";
   inputEl.classList.remove("shake");
-  hintLabelEl.textContent = "Enterで確定";
+  resetHintLabel();
   fitSpacerToViewport();
 }
 
@@ -2474,9 +2764,9 @@ inputEl.addEventListener("input", (e) => {
     return;
   }
   recordKeystrokeTiming();
-  updateProgressHighlight(inputEl.value);
+  if(inputMode === "textbox") updateProgressHighlight(inputEl.value);
   inputEl.classList.remove("shake");
-  hintLabelEl.textContent = "Enterで確定";
+  resetHintLabel();
 });
 
 inputEl.addEventListener("keydown", (e) => {
