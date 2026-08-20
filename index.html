@@ -612,13 +612,19 @@
   .romaji-display{
     margin-top:clamp(8px,2vh,16px);
     font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-    font-size:clamp(15px,3.4vh,26px);
+    font-size:26px;
     font-weight:700;
     letter-spacing:0.06em;
     color:var(--ink-soft);
     white-space:nowrap;
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:hidden;
     max-width:100%;
+    scrollbar-width:none;
+  }
+
+  .romaji-display::-webkit-scrollbar{
+    display:none;
   }
 
   .romaji-display.shake{
@@ -2027,11 +2033,11 @@ function fitSpacerToViewport(){
 
 window.addEventListener("resize", fitSpacerToViewport);
 window.addEventListener("resize", fitWordDisplayFontSize);
-window.addEventListener("resize", fitRomajiDisplayFontSize);
+window.addEventListener("resize", scrollRomajiDisplayToTypedPosition);
 if(window.visualViewport){
   window.visualViewport.addEventListener("resize", fitSpacerToViewport);
   window.visualViewport.addEventListener("resize", fitWordDisplayFontSize);
-  window.visualViewport.addEventListener("resize", fitRomajiDisplayFontSize);
+  window.visualViewport.addEventListener("resize", scrollRomajiDisplayToTypedPosition);
 }
 
 document.querySelectorAll(".mode-btn").forEach(btn => {
@@ -2485,19 +2491,17 @@ function renderRomajiDisplay(){
   const doneHtml = `<span class="rchar done">${typingText.completedRoman}</span>`;
   const restHtml = `<span class="rchar current">${typingText.remainingRoman}</span>`;
   romajiDisplayEl.innerHTML = doneHtml + restHtml;
-  fitRomajiDisplayFontSize();
+  scrollRomajiDisplayToTypedPosition();
 }
 
-function fitRomajiDisplayFontSize(){
+function scrollRomajiDisplayToTypedPosition(){
   if(!romajiDisplayEl || romajiDisplayEl.classList.contains("hidden")) return;
-  const baseSize = parseFloat(getComputedStyle(romajiDisplayEl).fontSize);
-  const minSize = 10;
-  let size = baseSize;
-  romajiDisplayEl.style.fontSize = "";
-  while(romajiDisplayEl.scrollWidth > romajiDisplayEl.clientWidth && size > minSize){
-    size -= 1;
-    romajiDisplayEl.style.fontSize = `${size}px`;
-  }
+  const doneEl = romajiDisplayEl.querySelector(".rchar.done");
+  if(!doneEl) return;
+  const typedPosition = doneEl.offsetLeft + doneEl.offsetWidth;
+  const targetScrollLeft = typedPosition - romajiDisplayEl.clientWidth * 0.4;
+  const maxScrollLeft = Math.max(0, romajiDisplayEl.scrollWidth - romajiDisplayEl.clientWidth);
+  romajiDisplayEl.scrollLeft = Math.min(maxScrollLeft, Math.max(0, targetScrollLeft));
 }
 
 function getRealtimeCompletedKanaCount(){
