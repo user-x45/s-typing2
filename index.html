@@ -622,6 +622,7 @@
   .romaji-display{
     margin-top:clamp(8px,2vh,16px);
     font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    text-align:left;
     font-size:26px;
     font-weight:700;
     letter-spacing:0.06em;
@@ -2101,10 +2102,12 @@ function fitSpacerToViewport(){
 
 window.addEventListener("resize", fitSpacerToViewport);
 window.addEventListener("resize", fitWordDisplayFontSize);
+window.addEventListener("resize", fitRomajiDisplayFontSize);
 window.addEventListener("resize", scrollRomajiDisplayToTypedPosition);
 if(window.visualViewport){
   window.visualViewport.addEventListener("resize", fitSpacerToViewport);
   window.visualViewport.addEventListener("resize", fitWordDisplayFontSize);
+  window.visualViewport.addEventListener("resize", fitRomajiDisplayFontSize);
   window.visualViewport.addEventListener("resize", scrollRomajiDisplayToTypedPosition);
 }
 
@@ -2563,6 +2566,7 @@ function setupRealtimeWord(){
     typingText = null;
   }
   renderRomajiDisplay();
+  fitRomajiDisplayFontSize();
 }
 
 function renderRomajiDisplay(){
@@ -2575,6 +2579,19 @@ function renderRomajiDisplay(){
   const restHtml = `<span class="rchar current">${typingText.remainingRoman}</span>`;
   romajiDisplayEl.innerHTML = doneHtml + restHtml;
   scrollRomajiDisplayToTypedPosition();
+}
+
+function fitRomajiDisplayFontSize(){
+  if(!romajiDisplayEl) return;
+  const baseSize = 26;
+  const minSize = 15;
+  const maxScrollableWidth = romajiDisplayEl.clientWidth * 2.2;
+  let size = baseSize;
+  romajiDisplayEl.style.fontSize = `${size}px`;
+  while(romajiDisplayEl.scrollWidth > maxScrollableWidth && size > minSize){
+    size -= 1;
+    romajiDisplayEl.style.fontSize = `${size}px`;
+  }
 }
 
 function scrollRomajiDisplayToTypedPosition(){
