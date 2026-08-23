@@ -316,6 +316,7 @@
     transition:all 0.2s ease;
     white-space:nowrap;
     flex-shrink:0;
+    display:none;
   }
 
   .switch-player-btn:hover{
@@ -370,6 +371,15 @@
     border-radius:12px;
     padding:4px;
     overflow:hidden;
+  }
+
+  .section-heading{
+    font-size:12px;
+    font-weight:700;
+    color:var(--ink-soft);
+    letter-spacing:0.08em;
+    text-align:center;
+    margin:0 0 8px;
   }
 
   .mode-btn, .input-mode-btn{
@@ -1014,6 +1024,25 @@
     display:block;
   }
 
+  .ranking-submitting-indicator{
+    display:none;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin:10px auto 0;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+
+  .ranking-submitting-indicator.visible{
+    display:flex;
+  }
+
+  .ranking-submitting-indicator .fa-spinner{
+    color:var(--hanko);
+  }
+
   .retry-btn{
     padding:12px 36px;
     background:transparent;
@@ -1223,6 +1252,7 @@
         <button class="level-btn" data-level="advanced">上級<span class="sub">14文字以上</span></button>
       </div>
 
+      <div class="section-heading">入力モード</div>
       <div class="mode-tabs input-mode-tabs">
         <button class="input-mode-btn active" data-input-mode="realtime">リアルタイム</button>
         <button class="input-mode-btn" data-input-mode="textbox">テキストボックス</button>
@@ -1344,6 +1374,7 @@
       <div class="result-rank-badge" id="result-rank-badge"></div>
       <div class="high-score-label result-high-score" id="result-high-score">ハイスコア 0</div>
       <div class="new-record-badge" id="new-record-badge">ハイスコア更新！</div>
+      <div class="ranking-submitting-indicator" id="ranking-submitting-indicator"><i class="fa-solid fa-spinner fa-spin"></i>ランキング登録中...</div>
       <div class="stat-grid">
         <div class="stat-box">
           <div class="stat-value" id="stat-accuracy">0%</div>
@@ -1432,6 +1463,7 @@ nameInputFieldEl.addEventListener("keydown", (e) => {
 const GOOGLE_CLIENT_ID = "7365893755-eqm3coij6otohorig4bgq4mtoen1q7sf.apps.googleusercontent.com";
 const SESSION_TOKEN_KEY = "sessionToken";
 const GUEST_NAME_KEY = "guestPlayerName";
+const GUEST_INPUT_MODE_KEY = "guestInputMode";
 const currentPlayerLabelEl = document.getElementById("current-player-label");
 const logoutBtnEl = document.getElementById("logout-btn");
 const googleLoginBtnEl = document.getElementById("google-login-btn");
@@ -1510,13 +1542,14 @@ async function loadServerHighScores(token){
   }
 }
 
-async function showLoggedInUi(name, token){
+async function showLoggedInUi(name, token, inputModeFromAccount){
   currentPlayerName = name;
   await loadServerHighScores(token);
   updatePlayerNameLabel();
   updateSetupHighScore();
   googleLoginBtnEl.classList.add("hidden");
   logoutBtnEl.classList.remove("hidden");
+  applyInputMode(inputModeFromAccount || "realtime");
 }
 
 function showLoggedOutUi(){
@@ -1526,6 +1559,7 @@ function showLoggedOutUi(){
   updateSetupHighScore();
   googleLoginBtnEl.classList.remove("hidden");
   logoutBtnEl.classList.add("hidden");
+  applyInputMode(localStorage.getItem(GUEST_INPUT_MODE_KEY) || "realtime");
 }
 
 async function verifySession(){
@@ -1542,7 +1576,7 @@ async function verifySession(){
     });
     const data = await res.json();
     if(data.valid){
-      await showLoggedInUi(data.name, token);
+      await showLoggedInUi(data.name, token, data.inputMode);
     } else {
       clearSessionToken();
       showLoggedOutUi();
@@ -1585,14 +1619,14 @@ async function handleGoogleCredential(idToken){
       }
       if(regData.token){
         setSessionToken(regData.token);
-        await showLoggedInUi(regData.name, regData.token);
+        await showLoggedInUi(regData.name, regData.token, regData.inputMode);
       } else {
         showCustomAlert("登録に失敗しました");
       }
     });
   } else {
     setSessionToken(data.token);
-    await showLoggedInUi(data.name, data.token);
+    await showLoggedInUi(data.name, data.token, data.inputMode);
   }
 }
 
@@ -1666,9 +1700,16 @@ logoutBtnEl.addEventListener("click", () => {
 });
 
 const appLoadingOverlayEl = document.getElementById("app-loading-overlay");
+let appLoadingCount = 1;
+
+function showAppLoadingOverlay(){
+  appLoadingCount++;
+  appLoadingOverlayEl.classList.remove("hidden");
+}
 
 function hideAppLoadingOverlay(){
-  appLoadingOverlayEl.classList.add("hidden");
+  appLoadingCount = Math.max(0, appLoadingCount - 1);
+  if(appLoadingCount === 0) appLoadingOverlayEl.classList.add("hidden");
 }
 
 window.addEventListener("load", async () => {
@@ -1688,6 +1729,7 @@ async function fetchWordList(mode, level){
   const cacheKey = `${mode}-${level}`;
   if(wordListCache[cacheKey]) return wordListCache[cacheKey];
   const res = await fetch(`words/${cacheKey}.json`);
+  if(!res.ok) throw new Error("failed to load word list");
   const list = await res.json();
   wordListCache[cacheKey] = list;
   return list;
@@ -1716,16 +1758,39 @@ async function ensureWordList(mode, level){
   const cacheKey = `${mode}-${level}`;
   let list = wordListCache[cacheKey];
   if(!list){
-    try{
-      list = await fetchWordList(mode, level);
-    }catch(e){
-      list = [];
+    while(!list){
+      try{
+        list = await fetchWordList(mode, level);
+      }catch(e){
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
     }
   }
   if(mode === "sentence" && !sentenceReadingCache[level]){
     await ensureSentenceReadings(level, list);
   }
   return list;
+}
+
+const ALL_MODES = ["hiragana", "katakana", "sentence"];
+const ALL_LEVELS = ["beginner", "intermediate", "advanced"];
+
+async function preloadAllWordLists(){
+  showAppLoadingOverlay();
+  for(const mode of ALL_MODES){
+    for(const level of ALL_LEVELS){
+      let loaded = false;
+      while(!loaded){
+        try{
+          await ensureWordList(mode, level);
+          loaded = true;
+        }catch(e){
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+      }
+    }
+  }
+  hideAppLoadingOverlay();
 }
 
 function getCurrentWordReading(){
@@ -1835,6 +1900,7 @@ const resultRankBadgeEl = document.getElementById("result-rank-badge");
 const setupHighScoreEl = document.getElementById("setup-high-score");
 const resultHighScoreEl = document.getElementById("result-high-score");
 const newRecordBadgeEl = document.getElementById("new-record-badge");
+const rankingSubmittingIndicatorEl = document.getElementById("ranking-submitting-indicator");
 
 function getHighScoreKey(mode, level){
   return `highScore_${mode}_${level}`;
@@ -1998,7 +2064,9 @@ async function handleRankingSubmission(score, mode, level){
   const qualifies = await checkRankQualifies(score, mode, level);
   if(!qualifies) return;
   const name = normalizePlayerName(getPlayerName());
-  submitScoreToRanking(score, mode, level, name);
+  if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.add("visible");
+  await submitScoreToRanking(score, mode, level, name);
+  if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.remove("visible");
 }
 
 const initialRankingLoadPromise = loadRanking();
@@ -2055,7 +2123,6 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     loadRanking();
     updateUrlHash();
     updateSetupHighScore();
-    ensureWordList(currentMode, currentLevel);
   });
 });
 
@@ -2068,7 +2135,6 @@ document.querySelectorAll(".levels").forEach(row => {
       loadRanking();
       updateUrlHash();
       updateSetupHighScore();
-      ensureWordList(currentMode, currentLevel);
     });
   });
 });
@@ -2108,12 +2174,12 @@ function applyStateFromHash(){
 
   loadRanking();
   updateSetupHighScore();
-  ensureWordList(currentMode, currentLevel);
 }
 
 document.getElementById("footer-year").textContent = new Date().getFullYear();
 
 applyStateFromHash();
+preloadAllWordLists();
 window.addEventListener("hashchange", applyStateFromHash);
 
 document.getElementById("start-btn").addEventListener("click", startGame);
@@ -2458,19 +2524,36 @@ function updateInputModeUI(){
   updateSentenceProgressHighlight();
 }
 
+function applyInputMode(mode){
+  inputMode = mode === "textbox" ? "textbox" : "realtime";
+  document.querySelectorAll(".input-mode-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.inputMode === inputMode);
+  });
+  updateInputModeUI();
+  if(inputMode === "realtime" && gameEl.classList.contains("visible")){
+    setupRealtimeWord();
+  }
+}
+
 document.querySelectorAll(".input-mode-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".input-mode-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    inputMode = btn.dataset.inputMode;
-    updateInputModeUI();
-    if(inputMode === "realtime" && gameEl.classList.contains("visible")){
-      setupRealtimeWord();
+    const selectedMode = btn.dataset.inputMode;
+    applyInputMode(selectedMode);
+    const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
+    if(isLoggedIn){
+      const token = getSessionToken();
+      fetch(`${RANKING_API_URL}/auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "setInputMode", token, inputMode: selectedMode })
+      }).catch(() => {});
+    } else {
+      localStorage.setItem(GUEST_INPUT_MODE_KEY, selectedMode);
     }
   });
 });
 
-updateInputModeUI();
+applyInputMode(localStorage.getItem(GUEST_INPUT_MODE_KEY) || "realtime");
 
 function setupRealtimeWord(){
   const reading = getCurrentWordReading();
@@ -2629,7 +2712,9 @@ async function startGame(){
   logPlay(currentMode, currentLevel, "solo", "");
   currentGameSessionToken = null;
   requestGameSessionToken(currentMode, currentLevel).then(token => { currentGameSessionToken = token; });
+  showAppLoadingOverlay();
   await ensureWordList(currentMode, currentLevel);
+  hideAppLoadingOverlay();
   setupEl.classList.add("hidden");
   resultEl.classList.remove("visible");
   gameEl.classList.add("visible");
@@ -2651,6 +2736,7 @@ async function startGame(){
   resultRankBadgeEl.classList.remove("visible");
   resultRankBadgeEl.textContent = "";
   newRecordBadgeEl.classList.remove("visible");
+  if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.remove("visible");
   scoreLabelEl.textContent = `せいかい 0 もん`;
   timeLabelEl.textContent = `残り 100 秒`;
   timerFillEl.style.width = "100%";
