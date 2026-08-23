@@ -642,6 +642,10 @@
     animation:shake 0.3s ease;
   }
 
+  .romaji-display.centered{
+    text-align:center;
+  }
+
   .rchar{
     display:inline-block;
   }
@@ -2592,6 +2596,7 @@ function fitRomajiDisplayFontSize(){
     size -= 1;
     romajiDisplayEl.style.fontSize = `${size}px`;
   }
+  romajiDisplayEl.classList.toggle("centered", romajiDisplayEl.scrollWidth <= romajiDisplayEl.clientWidth);
 }
 
 function scrollRomajiDisplayToTypedPosition(){
