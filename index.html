@@ -2187,7 +2187,12 @@ document.getElementById("footer-year").textContent = new Date().getFullYear();
 
 applyStateFromHash();
 preloadAllWordLists();
-window.addEventListener("hashchange", applyStateFromHash);
+window.addEventListener("hashchange", () => {
+  if(isInGameFlow()){
+    quitToTop();
+  }
+  applyStateFromHash();
+});
 
 document.getElementById("start-btn").addEventListener("click", startGame);
 document.getElementById("start-online-btn").addEventListener("click", startOnlineSearch);
@@ -2236,6 +2241,38 @@ function cancelSearch(){
   if(ws){ ws.close(); ws = null; }
   clearInterval(searchCountdownTimer);
   searchingEl.classList.remove("visible");
+  setupEl.classList.remove("hidden");
+}
+
+function isInGameFlow(){
+  return gameEl.classList.contains("visible") ||
+    countdownEl.classList.contains("visible") ||
+    searchingEl.classList.contains("visible") ||
+    friendMenuEl.classList.contains("visible") ||
+    friendCreateEl.classList.contains("visible") ||
+    friendWaitingEl.classList.contains("visible") ||
+    friendJoinEl.classList.contains("visible");
+}
+
+function quitToTop(){
+  clearInterval(timerId);
+  clearInterval(onlineTimerId);
+  clearInterval(countdownTimerId);
+  clearInterval(searchCountdownTimer);
+  if(ws){ ws.close(); ws = null; }
+  if(friendWs){ friendWs.close(); friendWs = null; }
+  friendRole = null;
+  isOnlineMode = false;
+  countdownEl.classList.remove("visible");
+  searchingEl.classList.remove("visible");
+  friendMenuEl.classList.remove("visible");
+  friendCreateEl.classList.remove("visible");
+  friendWaitingEl.classList.remove("visible");
+  friendJoinEl.classList.remove("visible");
+  gameEl.classList.remove("visible");
+  headerEl.classList.remove("hidden");
+  document.body.classList.remove("game-active");
+  resultEl.classList.remove("visible");
   setupEl.classList.remove("hidden");
 }
 
@@ -2739,6 +2776,7 @@ async function startGame(){
   hideAppLoadingOverlay();
   setupEl.classList.add("hidden");
   resultEl.classList.remove("visible");
+  await runSoloCountdown();
   gameEl.classList.add("visible");
   headerEl.classList.add("hidden");
   document.body.classList.add("game-active");
@@ -2773,6 +2811,25 @@ async function startGame(){
       endGame(true);
     }
   }, 1000);
+}
+
+function runSoloCountdown(){
+  return new Promise(resolve => {
+    countdownEl.classList.add("visible");
+    let count = 3;
+    countdownNumberEl.textContent = count;
+    clearInterval(countdownTimerId);
+    countdownTimerId = setInterval(() => {
+      count--;
+      if(count > 0){
+        countdownNumberEl.textContent = count;
+      } else {
+        clearInterval(countdownTimerId);
+        countdownEl.classList.remove("visible");
+        resolve();
+      }
+    }, 1000);
+  });
 }
 
 function endGame(isNormalEnd){
