@@ -1415,7 +1415,7 @@
   </div>
 </div>
 
-<script src="typing-jp.js"></script>
+<script src="https://s-typing.f5.si/typing-jp.js"></script>
 <script>
 const customAlertOverlayEl = document.getElementById("custom-alert-overlay");
 const customAlertMessageEl = document.getElementById("custom-alert-message");
@@ -1733,7 +1733,7 @@ const wordListCache = {};
 async function fetchWordList(mode, level){
   const cacheKey = `${mode}-${level}`;
   if(wordListCache[cacheKey]) return wordListCache[cacheKey];
-  const res = await fetch(`words/${cacheKey}.json`);
+  const res = await fetch(`https://s-typing.f5.si/words/${cacheKey}.json`);
   if(!res.ok) throw new Error("failed to load word list");
   const list = await res.json();
   wordListCache[cacheKey] = list;
@@ -1745,7 +1745,7 @@ const sentenceReadingCache = {};
 async function ensureSentenceReadings(level, words){
   if(sentenceReadingCache[level]) return sentenceReadingCache[level];
   try{
-    const res = await fetch(`words/sentence-${level}2.json`);
+    const res = await fetch(`https://s-typing.f5.si/words/sentence-${level}2.json`);
     const readings = await res.json();
     const map = {};
     (words || []).forEach((word, i) => {
