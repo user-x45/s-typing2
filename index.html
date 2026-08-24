@@ -10,7 +10,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">]
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="無料で遊べるひらがな・カタカナ・文章タイピング練習ゲーム。初級から上級までレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競えます。">
 <meta content="https://s-typing.surge.sh/" property="og:url">
@@ -2438,6 +2438,10 @@ async function beginOnlineMatch(){
     await ensureSentenceReadings(currentLevel, onlineWordDeck);
   }
   currentWord = onlineWordDeck[0];
+  if(romajiDisplayEl){
+    romajiDisplayEl.classList.remove("shake");
+    romajiDisplayEl.scrollLeft = 0;
+  }
   renderWord();
   inputEl.value = "";
   inputEl.classList.remove("shake");
@@ -2601,6 +2605,10 @@ applyInputMode(localStorage.getItem(GUEST_INPUT_MODE_KEY) || "realtime");
 
 function setupRealtimeWord(){
   const reading = getCurrentWordReading();
+  if(romajiDisplayEl){
+    romajiDisplayEl.classList.remove("shake");
+    romajiDisplayEl.scrollLeft = 0;
+  }
   try{
     typingText = new TypingText(reading);
   }catch(e){
@@ -2791,6 +2799,10 @@ async function startGame(){
   usedWords = [];
   integrityOk = true;
   lastKeyTime = 0;
+  if(romajiDisplayEl){
+    romajiDisplayEl.classList.remove("shake");
+    romajiDisplayEl.scrollLeft = 0;
+  }
   suspiciousKeyCount = 0;
   keyIntervals = [];
   resultRankBadgeEl.classList.remove("visible");
