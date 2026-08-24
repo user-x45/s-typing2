@@ -33,6 +33,13 @@
   "url": "https://s-typing.surge.sh/"
 }
 </script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LSBNPPLE0E"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LSBNPPLE0E');
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap');
 
@@ -564,6 +571,10 @@
     background:var(--hanko);
     width:100%;
     transition:width 1s linear;
+  }
+
+  .timer-fill.no-transition{
+    transition:none;
   }
 
   .word-frame{
@@ -1415,7 +1426,7 @@
   </div>
 </div>
 
-<script src="https://s-typing.f5.si/typing-jp.js"></script>
+<script src="typing-jp.js"></script>
 <script>
 const customAlertOverlayEl = document.getElementById("custom-alert-overlay");
 const customAlertMessageEl = document.getElementById("custom-alert-message");
@@ -1729,23 +1740,45 @@ function katakanaToHiragana(str){
 }
 
 const wordListCache = {};
+const sentenceReadingCache = {};
+const WORD_DATA_CACHE_NAME = "simple-typing-word-data-v1";
+
+async function fetchCachedJson(url){
+  if("caches" in window){
+    try{
+      const cache = await caches.open(WORD_DATA_CACHE_NAME);
+      const cachedResponse = await cache.match(url);
+      if(cachedResponse){
+        return cachedResponse;
+      }
+      const response = await fetch(url);
+      if(!response.ok) throw new Error("failed to load data");
+      await cache.put(url, response.clone());
+      return response;
+    }catch(e){
+      const response = await fetch(url, {cache:"force-cache"});
+      if(!response.ok) throw new Error("failed to load data");
+      return response;
+    }
+  }
+  const response = await fetch(url, {cache:"force-cache"});
+  if(!response.ok) throw new Error("failed to load data");
+  return response;
+}
 
 async function fetchWordList(mode, level){
   const cacheKey = `${mode}-${level}`;
   if(wordListCache[cacheKey]) return wordListCache[cacheKey];
-  const res = await fetch(`https://s-typing.f5.si/words/${cacheKey}.json`);
-  if(!res.ok) throw new Error("failed to load word list");
+  const res = await fetchCachedJson(`words/${cacheKey}.json`);
   const list = await res.json();
   wordListCache[cacheKey] = list;
   return list;
 }
 
-const sentenceReadingCache = {};
-
 async function ensureSentenceReadings(level, words){
   if(sentenceReadingCache[level]) return sentenceReadingCache[level];
   try{
-    const res = await fetch(`https://s-typing.f5.si/words/sentence-${level}2.json`);
+    const res = await fetchCachedJson(`words/sentence-${level}2.json`);
     const readings = await res.json();
     const map = {};
     (words || []).forEach((word, i) => {
@@ -2432,7 +2465,7 @@ async function beginOnlineMatch(){
   const myDisplayName = normalizePlayerName(getPlayerName()) || "GUEST";
   scoreLabelEl.textContent = `${myDisplayName} 0 もん`;
   timeLabelEl.textContent = `残り 100 秒`;
-  timerFillEl.style.width = "100%";
+  resetTimerFill();
   updateOpponentHud();
   if(currentMode === "sentence"){
     await ensureSentenceReadings(currentLevel, onlineWordDeck);
@@ -2460,6 +2493,13 @@ async function beginOnlineMatch(){
       }
     }
   }, 1000);
+}
+
+function resetTimerFill(){
+  timerFillEl.classList.add("no-transition");
+  timerFillEl.style.width = "100%";
+  void timerFillEl.offsetWidth;
+  timerFillEl.classList.remove("no-transition");
 }
 
 function updateOpponentHud(){
@@ -2811,7 +2851,7 @@ async function startGame(){
   if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.remove("visible");
   scoreLabelEl.textContent = `せいかい 0 もん`;
   timeLabelEl.textContent = `残り 100 秒`;
-  timerFillEl.style.width = "100%";
+  resetTimerFill();
   nextWord();
   inputEl.focus();
   clearInterval(timerId);
