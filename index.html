@@ -808,6 +808,27 @@
     50%{ box-shadow:0 0 0 8px rgba(255,207,92,0); }
   }
 
+  .notice-banner{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin:0 0 16px;
+    padding:10px 14px;
+    border-radius:16px;
+    background:var(--panel-bg-soft);
+    border:1.5px solid var(--line);
+    color:var(--ink);
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-align:center;
+  }
+
+  .notice-banner i{
+    color:var(--hanko);
+  }
+
   .ranking-box{
     margin-top:22px;
     padding-top:18px;
@@ -1255,6 +1276,7 @@
   <div class="panel">
 
     <div class="setup" id="setup">
+      <div class="notice-banner"><i class="fas fa-sparkles"></i> <span>デザインをリニューアルしました！</span></div>
       <div class="event-banner hidden" id="event-banner"><i class="fas fa-star"></i> <span id="event-banner-text">イベント開催中！</span></div>
       <div class="mode-tabs">
         <button class="mode-btn active" data-mode="hiragana">ひらがな</button>
