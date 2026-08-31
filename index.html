@@ -11,7 +11,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="無料で遊べるひらがな・カタカナ・文章タイピング練習ゲーム。初級から上級までレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競えます。">
 <meta content="https://s-typing.surge.sh/" property="og:url">
 <meta content="シンプルタイピング" property="og:title">
@@ -1022,6 +1021,187 @@
     background:var(--hanko-deep);
   }
 
+  .mode-and-mute-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:10px;
+  }
+
+  .mode-and-mute-row .mute-check-label{
+    margin-top:0;
+  }
+
+  .input-mode-toggle-btn{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    height:30px;
+    padding:0 12px;
+    background:var(--panel-bg-soft);
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    color:var(--ink-soft);
+    font-size:13px;
+    cursor:pointer;
+    transition:border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .input-mode-toggle-btn:hover{
+    border-color:var(--gold);
+    color:var(--ink);
+  }
+
+  .input-mode-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(31,28,25,0.55);
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    padding:20px;
+  }
+
+  .input-mode-overlay.visible{
+    display:flex;
+  }
+
+  .input-mode-box{
+    background:var(--washi);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:28px 24px;
+    max-width:320px;
+    width:100%;
+    text-align:center;
+    position:relative;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+
+  .input-mode-modal-title{
+    font-size:14px;
+    color:var(--ink);
+    margin-bottom:16px;
+  }
+
+  .input-mode-box .mode-tabs{
+    margin-bottom:18px;
+  }
+
+  .input-mode-settings{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:20px;
+    padding:14px 16px;
+    background:var(--panel-bg-soft);
+    border-radius:14px;
+  }
+
+  .input-mode-setting-label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+
+  .input-mode-setting-check{
+    width:16px;
+    height:16px;
+    cursor:pointer;
+    accent-color:var(--hanko);
+    flex-shrink:0;
+  }
+
+  .romaji-display.uppercase{
+    text-transform:uppercase;
+  }
+
+  .play-records-box{
+    background:var(--washi);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:28px 24px;
+    max-width:420px;
+    width:100%;
+    max-height:80vh;
+    display:flex;
+    flex-direction:column;
+    text-align:center;
+    position:relative;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+
+  .play-records-list{
+    list-style:none;
+    margin:0 0 20px;
+    padding:0;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .play-record-item{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:10px 14px;
+    background:var(--panel-bg-soft);
+    border-radius:12px;
+    text-align:left;
+  }
+
+  .play-record-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+  }
+
+  .play-record-time{
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+
+  .play-record-stats{
+    display:flex;
+    gap:14px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+
+  .play-records-empty{
+    font-size:13px;
+    color:var(--ink-soft);
+    padding:20px 0;
+  }
+
+  .input-mode-close-btn{
+    padding:10px 32px;
+    background:none;
+    color:var(--ink-soft);
+    border:1.5px solid var(--line);
+    border-radius:16px;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:0.05em;
+    cursor:pointer;
+    transition:border-color 0.2s ease;
+  }
+
+  .input-mode-close-btn:hover{
+    border-color:var(--gold);
+  }
+
   .result-rank-badge{
     display:none;
     margin:10px auto 0;
@@ -1302,12 +1482,6 @@
         <button class="level-btn" data-level="advanced">上級<span class="sub">14文字以上</span></button>
       </div>
 
-      <div class="section-heading">入力モード</div>
-      <div class="mode-tabs input-mode-tabs">
-        <button class="input-mode-btn active" data-input-mode="realtime">リアルタイム</button>
-        <button class="input-mode-btn" data-input-mode="textbox">テキストボックス</button>
-      </div>
-
       <div class="high-score-label setup-high-score" id="setup-high-score">ハイスコア 0</div>
 
       <div class="start-row">
@@ -1316,10 +1490,14 @@
         <button class="start-btn online-btn" id="start-friend-btn"><i class="fa-solid fa-user-group"></i> フレンド対戦</button>
       </div>
 
-      <label class="mute-check-label">
-        <input type="checkbox" id="mute-btn" class="mute-check">
-        ミュート
-      </label>
+      <div class="mode-and-mute-row">
+        <button class="input-mode-toggle-btn" id="input-mode-toggle-btn"><i class="fa-solid fa-keyboard"></i> 入力モード</button>
+        <button class="input-mode-toggle-btn" id="play-records-toggle-btn"><i class="fa-solid fa-clock-rotate-left"></i> 今までの記録</button>
+        <label class="mute-check-label">
+          <input type="checkbox" id="mute-btn" class="mute-check">
+          ミュート
+        </label>
+      </div>
 
       <div class="ranking-box hidden" id="ranking-box">
         <div class="ranking-title"><i class="fas fa-trophy"></i> ランキング TOP20（総合スコア）</div>
@@ -1460,6 +1638,39 @@
   </div>
 </div>
 
+<div class="input-mode-overlay" id="input-mode-overlay">
+  <div class="input-mode-box">
+    <div class="input-mode-modal-title">入力モードを選択</div>
+    <div class="mode-tabs input-mode-tabs">
+      <button class="input-mode-btn active" data-input-mode="realtime">リアルタイム</button>
+      <button class="input-mode-btn" data-input-mode="textbox">テキストボックス</button>
+    </div>
+    <div class="input-mode-settings">
+      <label class="input-mode-setting-label" id="show-romaji-label">
+        <input type="checkbox" id="show-romaji-check" class="input-mode-setting-check" checked>
+        ローマ字表示
+      </label>
+      <label class="input-mode-setting-label">
+        <input type="checkbox" id="show-furigana-check" class="input-mode-setting-check" checked>
+        ふりがな表示
+      </label>
+      <label class="input-mode-setting-label" id="romaji-uppercase-label">
+        <input type="checkbox" id="romaji-uppercase-check" class="input-mode-setting-check">
+        ローマ字を大文字にする
+      </label>
+    </div>
+    <button class="input-mode-close-btn" id="input-mode-close-btn">閉じる</button>
+  </div>
+</div>
+
+<div class="input-mode-overlay" id="play-records-overlay">
+  <div class="play-records-box">
+    <div class="input-mode-modal-title">今までの記録</div>
+    <ul class="play-records-list" id="play-records-list"></ul>
+    <button class="input-mode-close-btn" id="play-records-close-btn">閉じる</button>
+  </div>
+</div>
+
 <script src="typing-jp.js"></script>
 <script>
 const customAlertOverlayEl = document.getElementById("custom-alert-overlay");
@@ -1510,10 +1721,128 @@ nameInputFieldEl.addEventListener("keydown", (e) => {
   }
 });
 
+const inputModeToggleBtnEl = document.getElementById("input-mode-toggle-btn");
+const inputModeOverlayEl = document.getElementById("input-mode-overlay");
+const inputModeCloseBtnEl = document.getElementById("input-mode-close-btn");
+
+inputModeToggleBtnEl.addEventListener("click", () => {
+  inputModeOverlayEl.classList.add("visible");
+});
+
+inputModeCloseBtnEl.addEventListener("click", () => {
+  inputModeOverlayEl.classList.remove("visible");
+});
+
+const playRecordsToggleBtnEl = document.getElementById("play-records-toggle-btn");
+const playRecordsOverlayEl = document.getElementById("play-records-overlay");
+const playRecordsCloseBtnEl = document.getElementById("play-records-close-btn");
+const playRecordsListEl = document.getElementById("play-records-list");
+
+function getGuestPlayRecords(){
+  try{
+    const raw = localStorage.getItem(GUEST_PLAY_RECORDS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveGuestPlayRecords(records){
+  localStorage.setItem(GUEST_PLAY_RECORDS_KEY, JSON.stringify(records.slice(0, PLAY_RECORD_MAX)));
+}
+
+function addGuestPlayRecord(record){
+  const records = getGuestPlayRecords();
+  records.unshift(record);
+  saveGuestPlayRecords(records);
+}
+
+function formatPlayRecordTime(playedAt){
+  const date = new Date(playedAt);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function renderPlayRecords(records){
+  if(!playRecordsListEl) return;
+  if(!records || records.length === 0){
+    playRecordsListEl.innerHTML = `<li class="play-records-empty">まだ記録がありません</li>`;
+    return;
+  }
+  playRecordsListEl.innerHTML = records.map(r => {
+    const modeLabel = modeLabels[r.mode] || r.mode;
+    const levelLabel = levelLabels[r.level] || r.level;
+    return `
+      <li class="play-record-item">
+        <div class="play-record-top">
+          <span>${modeLabel}・${levelLabel}</span>
+          <span class="play-record-time">${formatPlayRecordTime(r.playedAt)}</span>
+        </div>
+        <div class="play-record-stats">
+          <span>スコア ${r.score !== undefined ? r.score : "-"}</span>
+          <span>正誤率 ${r.accuracy}%</span>
+          <span>${r.speed} 文字/分</span>
+          <span>ミス ${r.miss}</span>
+        </div>
+      </li>
+    `;
+  }).join("");
+}
+
+async function fetchAccountPlayRecords(token){
+  try{
+    const res = await fetch(`${RANKING_API_URL}/auth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "getPlayRecords", token })
+    });
+    const data = await res.json();
+    return Array.isArray(data.playRecords) ? data.playRecords : [];
+  }catch(e){
+    return [];
+  }
+}
+
+async function openPlayRecords(){
+  playRecordsOverlayEl.classList.add("visible");
+  playRecordsListEl.innerHTML = `<li class="play-records-empty">読み込み中...</li>`;
+  const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
+  const records = isLoggedIn ? await fetchAccountPlayRecords(getSessionToken()) : getGuestPlayRecords();
+  renderPlayRecords(records);
+}
+
+async function recordPlayResult(mode, level, accuracy, speed, miss, score){
+  const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
+  if(isLoggedIn){
+    const token = getSessionToken();
+    await fetchWithRetry(`${RANKING_API_URL}/auth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "addPlayRecord", token, mode, level, accuracy, speed, miss, score })
+    }, 4);
+  } else {
+    addGuestPlayRecord({ mode, level, playedAt: Date.now(), accuracy, speed, miss, score });
+  }
+}
+
+playRecordsToggleBtnEl.addEventListener("click", () => {
+  openPlayRecords();
+});
+
+playRecordsCloseBtnEl.addEventListener("click", () => {
+  playRecordsOverlayEl.classList.remove("visible");
+});
+
 const GOOGLE_CLIENT_ID = "7365893755-eqm3coij6otohorig4bgq4mtoen1q7sf.apps.googleusercontent.com";
 const SESSION_TOKEN_KEY = "sessionToken";
 const GUEST_NAME_KEY = "guestPlayerName";
 const GUEST_INPUT_MODE_KEY = "guestInputMode";
+const SHOW_ROMAJI_KEY = "showRomaji";
+const SHOW_FURIGANA_KEY = "showFurigana";
+const ROMAJI_UPPERCASE_KEY = "romajiUppercase";
+const GUEST_PLAY_RECORDS_KEY = "guestPlayRecords";
+const PLAY_RECORD_MAX = 20;
 const currentPlayerLabelEl = document.getElementById("current-player-label");
 const logoutBtnEl = document.getElementById("logout-btn");
 const googleLoginBtnEl = document.getElementById("google-login-btn");
@@ -1592,7 +1921,7 @@ async function loadServerHighScores(token){
   }
 }
 
-async function showLoggedInUi(name, token, inputModeFromAccount){
+async function showLoggedInUi(name, token, inputModeFromAccount, displaySettingsFromAccount){
   currentPlayerName = name;
   await loadServerHighScores(token);
   updatePlayerNameLabel();
@@ -1600,6 +1929,7 @@ async function showLoggedInUi(name, token, inputModeFromAccount){
   googleLoginBtnEl.classList.add("hidden");
   logoutBtnEl.classList.remove("hidden");
   applyInputMode(inputModeFromAccount || "realtime");
+  applyDisplaySettings(displaySettingsFromAccount || getGuestDisplaySettings());
 }
 
 function showLoggedOutUi(){
@@ -1610,6 +1940,7 @@ function showLoggedOutUi(){
   googleLoginBtnEl.classList.remove("hidden");
   logoutBtnEl.classList.add("hidden");
   applyInputMode(localStorage.getItem(GUEST_INPUT_MODE_KEY) || "realtime");
+  applyDisplaySettings(getGuestDisplaySettings());
 }
 
 async function verifySession(){
@@ -1626,7 +1957,7 @@ async function verifySession(){
     });
     const data = await res.json();
     if(data.valid){
-      await showLoggedInUi(data.name, token, data.inputMode);
+      await showLoggedInUi(data.name, token, data.inputMode, data.displaySettings);
     } else {
       clearSessionToken();
       showLoggedOutUi();
@@ -1669,14 +2000,14 @@ async function handleGoogleCredential(idToken){
       }
       if(regData.token){
         setSessionToken(regData.token);
-        await showLoggedInUi(regData.name, regData.token, regData.inputMode);
+        await showLoggedInUi(regData.name, regData.token, regData.inputMode, regData.displaySettings);
       } else {
         showCustomAlert("登録に失敗しました");
       }
     });
   } else {
     setSessionToken(data.token);
-    await showLoggedInUi(data.name, data.token, data.inputMode);
+    await showLoggedInUi(data.name, data.token, data.inputMode, data.displaySettings);
   }
 }
 
@@ -2078,6 +2409,20 @@ function logPlay(mode, level, matchType, opponent){
   }).catch(() => {});
 }
 
+async function fetchWithRetry(url, options, attempts){
+  for(let i = 0; i < attempts; i++){
+    try{
+      const res = await fetch(url, options);
+      if(res.ok) return res;
+    }catch(e){
+    }
+    if(i < attempts - 1){
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+  return null;
+}
+
 async function requestGameSessionToken(mode, level){
   const attempts = 4;
   for(let i = 0; i < attempts; i++){
@@ -2102,14 +2447,15 @@ async function requestGameSessionToken(mode, level){
 
 async function submitScoreToRanking(score, mode, level, name){
   if(!currentGameSessionToken) return;
+  const token = currentGameSessionToken;
+  currentGameSessionToken = null;
+  const res = await fetchWithRetry(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ score, name, token })
+  }, 4);
+  if(!res) return;
   try{
-    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ score, name, token: currentGameSessionToken })
-    });
-    currentGameSessionToken = null;
-    if(!res.ok) return;
     const data = await res.json();
     if(mode === currentMode && level === currentLevel){
       renderRanking(data.top20);
@@ -2618,7 +2964,7 @@ function pickWord(){
 
 function renderSentenceReading(){
   if(!sentenceReadingDisplayEl) return;
-  if(currentMode !== "sentence"){
+  if(currentMode !== "sentence" || !showFurigana){
     sentenceReadingDisplayEl.classList.remove("visible");
     sentenceReadingDisplayEl.innerHTML = "";
     return;
@@ -2645,7 +2991,7 @@ function resetHintLabel(){
 function updateInputModeUI(){
   const isRealtime = inputMode === "realtime";
   if(inputRowEl) inputRowEl.classList.toggle("hidden", isRealtime);
-  if(romajiDisplayEl) romajiDisplayEl.classList.toggle("hidden", !isRealtime);
+  if(romajiDisplayEl) romajiDisplayEl.classList.toggle("hidden", !isRealtime || !showRomaji);
   if(inputMode !== "realtime"){
     typingText = null;
   }
@@ -2653,11 +2999,100 @@ function updateInputModeUI(){
   updateSentenceProgressHighlight();
 }
 
+let showRomaji = localStorage.getItem(SHOW_ROMAJI_KEY) !== "false";
+let showFurigana = localStorage.getItem(SHOW_FURIGANA_KEY) !== "false";
+let romajiUppercase = localStorage.getItem(ROMAJI_UPPERCASE_KEY) === "true";
+
+const showRomajiCheckEl = document.getElementById("show-romaji-check");
+const showFuriganaCheckEl = document.getElementById("show-furigana-check");
+const romajiUppercaseCheckEl = document.getElementById("romaji-uppercase-check");
+
+function applyRomajiUppercaseUI(){
+  if(romajiDisplayEl) romajiDisplayEl.classList.toggle("uppercase", romajiUppercase);
+}
+
+function refreshDisplaySettingCheckboxes(){
+  if(showRomajiCheckEl) showRomajiCheckEl.checked = showRomaji;
+  if(showFuriganaCheckEl) showFuriganaCheckEl.checked = showFurigana;
+  if(romajiUppercaseCheckEl) romajiUppercaseCheckEl.checked = romajiUppercase;
+}
+
+function applyDisplaySettings(settings){
+  showRomaji = settings && settings.showRomaji !== undefined ? settings.showRomaji !== false : true;
+  showFurigana = settings && settings.showFurigana !== undefined ? settings.showFurigana !== false : true;
+  romajiUppercase = settings && settings.romajiUppercase === true;
+  refreshDisplaySettingCheckboxes();
+  updateInputModeUI();
+  renderSentenceReading();
+  applyRomajiUppercaseUI();
+}
+
+function getGuestDisplaySettings(){
+  return {
+    showRomaji: localStorage.getItem(SHOW_ROMAJI_KEY) !== "false",
+    showFurigana: localStorage.getItem(SHOW_FURIGANA_KEY) !== "false",
+    romajiUppercase: localStorage.getItem(ROMAJI_UPPERCASE_KEY) === "true"
+  };
+}
+
+function saveGuestDisplaySettings(){
+  localStorage.setItem(SHOW_ROMAJI_KEY, String(showRomaji));
+  localStorage.setItem(SHOW_FURIGANA_KEY, String(showFurigana));
+  localStorage.setItem(ROMAJI_UPPERCASE_KEY, String(romajiUppercase));
+}
+
+function handleDisplaySettingChange(){
+  const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
+  if(isLoggedIn){
+    const token = getSessionToken();
+    fetch(`${RANKING_API_URL}/auth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "setDisplaySettings", token, showRomaji, showFurigana, romajiUppercase })
+    }).catch(() => {});
+  } else {
+    saveGuestDisplaySettings();
+  }
+}
+
+if(showRomajiCheckEl){
+  showRomajiCheckEl.addEventListener("change", () => {
+    showRomaji = showRomajiCheckEl.checked;
+    updateInputModeUI();
+    handleDisplaySettingChange();
+  });
+}
+
+if(showFuriganaCheckEl){
+  showFuriganaCheckEl.addEventListener("change", () => {
+    showFurigana = showFuriganaCheckEl.checked;
+    renderSentenceReading();
+    handleDisplaySettingChange();
+  });
+}
+
+if(romajiUppercaseCheckEl){
+  romajiUppercaseCheckEl.addEventListener("change", () => {
+    romajiUppercase = romajiUppercaseCheckEl.checked;
+    applyRomajiUppercaseUI();
+    handleDisplaySettingChange();
+  });
+}
+
+refreshDisplaySettingCheckboxes();
+applyRomajiUppercaseUI();
+
+const showRomajiLabelEl = document.getElementById("show-romaji-label");
+const romajiUppercaseLabelEl = document.getElementById("romaji-uppercase-label");
+
 function applyInputMode(mode){
   inputMode = mode === "textbox" ? "textbox" : "realtime";
   document.querySelectorAll(".input-mode-btn").forEach(b => {
     b.classList.toggle("active", b.dataset.inputMode === inputMode);
   });
+  const isRealtime = inputMode === "realtime";
+  if(showRomajiLabelEl) showRomajiLabelEl.classList.toggle("hidden", !isRealtime);
+  if(romajiUppercaseLabelEl) romajiUppercaseLabelEl.classList.toggle("hidden", !isRealtime);
   updateInputModeUI();
   if(inputMode === "realtime" && gameEl.classList.contains("visible")){
     setupRealtimeWord();
@@ -2684,17 +3119,24 @@ document.querySelectorAll(".input-mode-btn").forEach(btn => {
 
 applyInputMode(localStorage.getItem(GUEST_INPUT_MODE_KEY) || "realtime");
 
+function buildTypingText(reading){
+  try{
+    return new TypingText(reading);
+  }catch(e){}
+  try{
+    const sanitized = [...reading].filter(c => /[ぁ-んー]/.test(c)).join("");
+    if(sanitized) return new TypingText(sanitized);
+  }catch(e){}
+  return null;
+}
+
 function setupRealtimeWord(){
   const reading = getCurrentWordReading();
   if(romajiDisplayEl){
     romajiDisplayEl.classList.remove("shake");
     romajiDisplayEl.scrollLeft = 0;
   }
-  try{
-    typingText = new TypingText(reading);
-  }catch(e){
-    typingText = null;
-  }
+  typingText = buildTypingText(reading);
   renderRomajiDisplay();
   fitRomajiDisplayFontSize();
 }
@@ -2782,7 +3224,10 @@ function completeRealtimeWord(){
 }
 
 function handleRealtimeKey(key){
-  if(!typingText) return;
+  if(!typingText){
+    setupRealtimeWord();
+    if(!typingText) return;
+  }
   recordKeystrokeTiming();
 
   let result;
@@ -2959,6 +3404,7 @@ function endGame(isNormalEnd){
     if(finalScore > 0){
       handleRankingSubmission(finalScore, currentMode, currentLevel);
     }
+    recordPlayResult(currentMode, currentLevel, accuracy, speed, missCount, finalScore);
   } else {
     setupEl.classList.remove("hidden");
   }
