@@ -11,7 +11,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="無料で遊べるひらがな・カタカナ・文章タイピング練習ゲーム。初級から上級までレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競えます。">
 <meta content="https://s-typing.surge.sh/" property="og:url">
 <meta content="シンプルタイピング" property="og:title">
@@ -1652,7 +1651,7 @@
         ローマ字表示
       </label>
       <label class="input-mode-setting-label">
-        <input type="checkbox" id="show-furigana-check" class="input-mode-setting-check" checked>
+        <input type="checkbox" id="show-hiragana-check" class="input-mode-setting-check" checked>
         ひらがな表示
       </label>
       <label class="input-mode-setting-label" id="romaji-uppercase-label">
@@ -1840,7 +1839,7 @@ const SESSION_TOKEN_KEY = "sessionToken";
 const GUEST_NAME_KEY = "guestPlayerName";
 const GUEST_INPUT_MODE_KEY = "guestInputMode";
 const SHOW_ROMAJI_KEY = "showRomaji";
-const SHOW_FURIGANA_KEY = "showFurigana";
+const SHOW_HIRAGANA_KEY = "showHiragana";
 const ROMAJI_UPPERCASE_KEY = "romajiUppercase";
 const GUEST_PLAY_RECORDS_KEY = "guestPlayRecords";
 const PLAY_RECORD_MAX = 20;
@@ -2965,7 +2964,7 @@ function pickWord(){
 
 function renderSentenceReading(){
   if(!sentenceReadingDisplayEl) return;
-  if(currentMode !== "sentence" || !showFurigana){
+  if(currentMode !== "sentence" || !showHiragana){
     sentenceReadingDisplayEl.classList.remove("visible");
     sentenceReadingDisplayEl.innerHTML = "";
     return;
@@ -3001,11 +3000,11 @@ function updateInputModeUI(){
 }
 
 let showRomaji = localStorage.getItem(SHOW_ROMAJI_KEY) !== "false";
-let showFurigana = localStorage.getItem(SHOW_FURIGANA_KEY) !== "false";
+let showHiragana = localStorage.getItem(SHOW_HIRAGANA_KEY) !== "false";
 let romajiUppercase = localStorage.getItem(ROMAJI_UPPERCASE_KEY) === "true";
 
 const showRomajiCheckEl = document.getElementById("show-romaji-check");
-const showFuriganaCheckEl = document.getElementById("show-furigana-check");
+const showHiraganaCheckEl = document.getElementById("show-hiragana-check");
 const romajiUppercaseCheckEl = document.getElementById("romaji-uppercase-check");
 
 function applyRomajiUppercaseUI(){
@@ -3014,13 +3013,13 @@ function applyRomajiUppercaseUI(){
 
 function refreshDisplaySettingCheckboxes(){
   if(showRomajiCheckEl) showRomajiCheckEl.checked = showRomaji;
-  if(showFuriganaCheckEl) showFuriganaCheckEl.checked = showFurigana;
+  if(showHiraganaCheckEl) showHiraganaCheckEl.checked = showHiragana;
   if(romajiUppercaseCheckEl) romajiUppercaseCheckEl.checked = romajiUppercase;
 }
 
 function applyDisplaySettings(settings){
   showRomaji = settings && settings.showRomaji !== undefined ? settings.showRomaji !== false : true;
-  showFurigana = settings && settings.showFurigana !== undefined ? settings.showFurigana !== false : true;
+  showHiragana = settings && settings.showHiragana !== undefined ? settings.showHiragana !== false : true;
   romajiUppercase = settings && settings.romajiUppercase === true;
   refreshDisplaySettingCheckboxes();
   updateInputModeUI();
@@ -3031,14 +3030,14 @@ function applyDisplaySettings(settings){
 function getGuestDisplaySettings(){
   return {
     showRomaji: localStorage.getItem(SHOW_ROMAJI_KEY) !== "false",
-    showFurigana: localStorage.getItem(SHOW_FURIGANA_KEY) !== "false",
+    showHiragana: localStorage.getItem(SHOW_HIRAGANA_KEY) !== "false",
     romajiUppercase: localStorage.getItem(ROMAJI_UPPERCASE_KEY) === "true"
   };
 }
 
 function saveGuestDisplaySettings(){
   localStorage.setItem(SHOW_ROMAJI_KEY, String(showRomaji));
-  localStorage.setItem(SHOW_FURIGANA_KEY, String(showFurigana));
+  localStorage.setItem(SHOW_HIRAGANA_KEY, String(showHiragana));
   localStorage.setItem(ROMAJI_UPPERCASE_KEY, String(romajiUppercase));
 }
 
@@ -3049,7 +3048,7 @@ function handleDisplaySettingChange(){
     fetch(`${RANKING_API_URL}/auth`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "setDisplaySettings", token, showRomaji, showFurigana, romajiUppercase })
+      body: JSON.stringify({ action: "setDisplaySettings", token, showRomaji, showHiragana, romajiUppercase })
     }).catch(() => {});
   } else {
     saveGuestDisplaySettings();
@@ -3064,9 +3063,9 @@ if(showRomajiCheckEl){
   });
 }
 
-if(showFuriganaCheckEl){
-  showFuriganaCheckEl.addEventListener("change", () => {
-    showFurigana = showFuriganaCheckEl.checked;
+if(showHiraganaCheckEl){
+  showHiraganaCheckEl.addEventListener("change", () => {
+    showHiragana = showHiraganaCheckEl.checked;
     renderSentenceReading();
     handleDisplaySettingChange();
   });
