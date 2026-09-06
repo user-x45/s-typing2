@@ -231,6 +231,56 @@
   }
 
 
+  .mobile-warning-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(31,28,25,0.55);
+    align-items:center;
+    justify-content:center;
+    z-index:3000;
+    padding:20px;
+  }
+
+  .mobile-warning-overlay.visible{
+    display:flex;
+  }
+
+  .mobile-warning-box{
+    background:var(--washi);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:28px 24px;
+    max-width:320px;
+    width:100%;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+
+  .mobile-warning-message{
+    font-size:15px;
+    color:var(--ink);
+    margin:0 0 22px;
+    line-height:1.6;
+  }
+
+  .mobile-warning-btn{
+    padding:10px 32px;
+    background:var(--hanko);
+    color:var(--washi);
+    border:none;
+    border-radius:16px;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:0.05em;
+    cursor:pointer;
+    transition:background 0.2s ease;
+  }
+
+  .mobile-warning-btn:hover{
+    background:var(--hanko-deep);
+  }
+
   .custom-alert-overlay{
     display:none;
     position:fixed;
@@ -562,10 +612,47 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
+    gap:8px;
     margin-bottom:clamp(8px,2vh,18px);
-    font-size:clamp(11px,2vh,13px);
-    color:var(--ink-soft);
-    letter-spacing:0.05em;
+    letter-spacing:0.03em;
+  }
+
+  .hud-stat{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    padding:6px 14px;
+    border-radius:12px;
+    font-weight:800;
+    font-size:clamp(13px,2.6vh,16px);
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+
+  #score-label{
+    background:rgba(47,158,148,0.12);
+    color:var(--pop-teal);
+  }
+
+  #opponent-score-label{
+    background:rgba(108,90,158,0.12);
+    color:var(--pop-purple);
+  }
+
+  #time-label{
+    background:rgba(224,86,63,0.12);
+    color:var(--hanko);
+  }
+
+  #time-label.time-warning{
+    background:rgba(224,86,63,0.22);
+    color:var(--hanko-deep);
+    animation:time-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes time-pulse{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.08); }
   }
 
   .timer-track{
@@ -1405,7 +1492,7 @@
     .search-count{font-size:16px;}
     .countdown-number{font-size:64px;}
 
-    .hud{font-size:11px;}
+    .hud-stat{font-size:12px;padding:5px 12px;}
     .word-eyebrow{font-size:10px;}
     #word-display{font-size:26px;}
     .sentence-reading-display{font-size:11px;}
@@ -1422,7 +1509,8 @@
 
   @media (max-height:600px){
     body.game-active{padding:6px 16px;}
-    .hud{margin-bottom:6px;font-size:11px;}
+    .hud{margin-bottom:6px;}
+    .hud-stat{font-size:12px;padding:4px 10px;}
     .timer-track{margin-bottom:8px;}
     .word-frame{padding:10px 12px;margin-bottom:8px;}
     .word-eyebrow{margin-bottom:4px;}
@@ -1433,6 +1521,12 @@
 </style>
 </head>
 <body>
+<div class="mobile-warning-overlay" id="mobile-warning-overlay">
+  <div class="mobile-warning-box">
+    <p class="mobile-warning-message">このサイトはスマートフォンに最適化されていません。<br>パソコンでの閲覧を推奨します。</p>
+    <button class="mobile-warning-btn" id="mobile-warning-close">閉じる</button>
+  </div>
+</div>
 <div class="app-loading-overlay" id="app-loading-overlay">
   <div class="app-loading-spinner"></div>
   <div class="app-loading-text">読み込み中...</div>
@@ -1574,9 +1668,9 @@
 
     <div class="game" id="game">
       <div class="hud">
-        <span id="score-label">せいかい 0 もん</span>
-        <span id="opponent-score-label" class="hidden">あいて 0 もん</span>
-        <span id="time-label">残り 100 秒</span>
+        <span id="score-label" class="hud-stat">せいかい 0 もん</span>
+        <span id="opponent-score-label" class="hud-stat hidden">あいて 0 もん</span>
+        <span id="time-label" class="hud-stat">残り 100 秒</span>
         <button id="end-game-btn" class="end-game-btn">終了</button>
       </div>
       <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
@@ -2853,6 +2947,7 @@ async function beginOnlineMatch(){
   const myDisplayName = normalizePlayerName(getPlayerName()) || "GUEST";
   scoreLabelEl.textContent = `${myDisplayName} 0 もん`;
   timeLabelEl.textContent = `残り 100 秒`;
+  timeLabelEl.classList.remove("time-warning");
   resetTimerFill();
   updateOpponentHud();
   if(currentMode === "sentence"){
@@ -2873,6 +2968,7 @@ async function beginOnlineMatch(){
   onlineTimerId = setInterval(() => {
     onlineTimeLeft--;
     timeLabelEl.textContent = `残り ${onlineTimeLeft} 秒`;
+    timeLabelEl.classList.toggle("time-warning", onlineTimeLeft <= 10);
     timerFillEl.style.width = `${(onlineTimeLeft / 100) * 100}%`;
     if(onlineTimeLeft <= 0){
       clearInterval(onlineTimerId);
@@ -3338,6 +3434,7 @@ async function startGame(){
   if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.remove("visible");
   scoreLabelEl.textContent = `せいかい 0 もん`;
   timeLabelEl.textContent = `残り 100 秒`;
+  timeLabelEl.classList.remove("time-warning");
   resetTimerFill();
   nextWord();
   inputEl.focus();
@@ -3345,6 +3442,7 @@ async function startGame(){
   timerId = setInterval(() => {
     timeLeft--;
     timeLabelEl.textContent = `残り ${timeLeft} 秒`;
+    timeLabelEl.classList.toggle("time-warning", timeLeft <= 10);
     timerFillEl.style.width = `${(timeLeft / 100) * 100}%`;
     if(timeLeft <= 0){
       endGame(true);
@@ -3532,6 +3630,17 @@ document.addEventListener("visibilitychange", () => {
     });
   }
 });
+
+(function(){
+  const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+  if(!isMobile) return;
+  const overlay = document.getElementById("mobile-warning-overlay");
+  const closeBtn = document.getElementById("mobile-warning-close");
+  overlay.classList.add("visible");
+  closeBtn.addEventListener("click", () => {
+    overlay.classList.remove("visible");
+  });
+})();
 </script>
 </body>
 </html>
