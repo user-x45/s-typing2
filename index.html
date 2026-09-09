@@ -2295,10 +2295,6 @@ let totalCharsTyped = 0;
 let timeLeft = 100;
 let timerId = null;
 let isComposing = false;
-let integrityOk = true;
-let lastKeyTime = 0;
-let suspiciousKeyCount = 0;
-let keyIntervals = [];
 
 const setupEl = document.getElementById("setup");
 const gameEl = document.getElementById("game");
@@ -2559,7 +2555,6 @@ async function checkRankQualifies(score, mode, level){
 }
 
 async function handleRankingSubmission(score, mode, level){
-  if(!integrityOk) return;
   const qualifies = await checkRankQualifies(score, mode, level);
   if(!qualifies) return;
   const name = normalizePlayerName(getPlayerName());
@@ -3304,7 +3299,6 @@ function handleRealtimeKey(key){
     setupRealtimeWord();
     if(!typingText) return;
   }
-  recordKeystrokeTiming();
 
   let result;
   try{
@@ -3399,14 +3393,10 @@ async function startGame(){
   totalCharsTyped = 0;
   timeLeft = 100;
   usedWords = [];
-  integrityOk = true;
-  lastKeyTime = 0;
   if(romajiDisplayEl){
     romajiDisplayEl.classList.remove("shake");
     romajiDisplayEl.scrollLeft = 0;
   }
-  suspiciousKeyCount = 0;
-  keyIntervals = [];
   resultRankBadgeEl.classList.remove("visible");
   resultRankBadgeEl.textContent = "";
   newRecordBadgeEl.classList.remove("visible");
@@ -3507,49 +3497,16 @@ function shakeInput(){
   inputEl.classList.add("shake");
 }
 
-function flagIntegrity(){
-  integrityOk = false;
-}
 
-function recordKeystrokeTiming(){
-  const now = performance.now();
-  if(lastKeyTime > 0){
-    const delta = now - lastKeyTime;
-    keyIntervals.push(delta);
-    if(keyIntervals.length > 20) keyIntervals.shift();
-    if(delta < 20) suspiciousKeyCount++;
-    if(keyIntervals.length >= 10){
-      const mean = keyIntervals.reduce((a, b) => a + b, 0) / keyIntervals.length;
-      const variance = keyIntervals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / keyIntervals.length;
-      const stddev = Math.sqrt(variance);
-      if(stddev < 3 && mean < 120) suspiciousKeyCount++;
-    }
-    if(suspiciousKeyCount >= 6) flagIntegrity();
-  }
-  lastKeyTime = now;
-}
 
 inputEl.addEventListener("compositionstart", () => { isComposing = true; });
 inputEl.addEventListener("compositionend", () => {
   setTimeout(() => { isComposing = false; }, 0);
 });
 
-inputEl.addEventListener("paste", (e) => {
-  e.preventDefault();
-  flagIntegrity();
-});
 
-inputEl.addEventListener("drop", (e) => {
-  e.preventDefault();
-  flagIntegrity();
-});
 
 inputEl.addEventListener("input", (e) => {
-  if(!e.isTrusted){
-    flagIntegrity();
-    return;
-  }
-  recordKeystrokeTiming();
   if(inputMode === "textbox") updateProgressHighlight(inputEl.value);
   inputEl.classList.remove("shake");
   resetHintLabel();
@@ -3557,10 +3514,6 @@ inputEl.addEventListener("input", (e) => {
 
 inputEl.addEventListener("keydown", (e) => {
   if(e.key !== "Enter") return;
-  if(!e.isTrusted){
-    flagIntegrity();
-    return;
-  }
   if(isComposing || e.isComposing || e.keyCode === 229) return;
   e.preventDefault();
 
