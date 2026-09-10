@@ -1498,6 +1498,80 @@
     #typing-input{padding:8px 14px;font-size:16px;}
     .hint{margin-top:4px;min-height:14px;}
   }
+
+  .keyboard-guide{
+    display:none;
+    margin-top:clamp(10px,2vh,16px);
+    user-select:none;
+  }
+
+  .keyboard-guide.visible{
+    display:block;
+  }
+
+  .kb-row{
+    display:flex;
+    justify-content:center;
+    gap:4px;
+    margin-bottom:4px;
+  }
+
+  .kb-key{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:28px;
+    height:28px;
+    padding:0 4px;
+    background:var(--panel-bg);
+    border:1.5px solid var(--line);
+    border-bottom-width:3px;
+    border-radius:5px;
+    font-size:11px;
+    font-weight:700;
+    color:var(--ink-soft);
+    letter-spacing:0;
+    transition:background 0.08s ease, color 0.08s ease, border-color 0.08s ease;
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+
+  .kb-key.wide{
+    min-width:44px;
+    font-size:10px;
+    letter-spacing:0.01em;
+  }
+
+  .kb-key.space{
+    min-width:120px;
+  }
+
+  .kb-key.active{
+    background:var(--hanko);
+    border-color:var(--hanko-deep);
+    color:#fff;
+  }
+
+  .kb-key.next{
+    background:var(--hanko);
+    border-color:var(--hanko-deep);
+    color:#fff;
+  }
+
+  @media (max-width:480px){
+    .kb-key{
+      min-width:22px;
+      height:24px;
+      font-size:9px;
+    }
+    .kb-key.wide{
+      min-width:34px;
+      font-size:8px;
+    }
+    .kb-key.space{
+      min-width:90px;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -1667,6 +1741,23 @@
         <input type="text" id="typing-input" autocomplete="off" placeholder="ここに入力してください">
       </div>
       <div class="hint" id="hint-label">Enterで確定</div>
+      <div class="keyboard-guide" id="keyboard-guide">
+        <div class="kb-row">
+          <div class="kb-key">1</div><div class="kb-key">2</div><div class="kb-key">3</div><div class="kb-key">4</div><div class="kb-key">5</div><div class="kb-key">6</div><div class="kb-key">7</div><div class="kb-key">8</div><div class="kb-key">9</div><div class="kb-key">0</div><div class="kb-key">-</div>
+        </div>
+        <div class="kb-row">
+          <div class="kb-key">Q</div><div class="kb-key">W</div><div class="kb-key">E</div><div class="kb-key">R</div><div class="kb-key">T</div><div class="kb-key">Y</div><div class="kb-key">U</div><div class="kb-key">I</div><div class="kb-key">O</div><div class="kb-key">P</div><div class="kb-key">@</div>
+        </div>
+        <div class="kb-row">
+          <div class="kb-key">A</div><div class="kb-key">S</div><div class="kb-key">D</div><div class="kb-key">F</div><div class="kb-key">G</div><div class="kb-key">H</div><div class="kb-key">J</div><div class="kb-key">K</div><div class="kb-key">L</div><div class="kb-key">;</div><div class="kb-key">:</div>
+        </div>
+        <div class="kb-row">
+          <div class="kb-key wide" data-key="shift">shift</div><div class="kb-key">Z</div><div class="kb-key">X</div><div class="kb-key">C</div><div class="kb-key">V</div><div class="kb-key">B</div><div class="kb-key">N</div><div class="kb-key">M</div><div class="kb-key">,</div><div class="kb-key">.</div><div class="kb-key">/</div><div class="kb-key wide" data-key="shift">shift</div>
+        </div>
+        <div class="kb-row">
+          <div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key space">space</div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div>
+        </div>
+      </div>
     </div>
 
     <div class="result" id="result">
@@ -1727,6 +1818,10 @@
       <label class="input-mode-setting-label">
         <input type="checkbox" id="show-hiragana-check" class="input-mode-setting-check" checked>
         ひらがな表示
+      </label>
+      <label class="input-mode-setting-label" id="show-keyboard-label">
+        <input type="checkbox" id="show-keyboard-check" class="input-mode-setting-check" checked>
+        キーボード表示
       </label>
       <label class="input-mode-setting-label" id="romaji-uppercase-label">
         <input type="checkbox" id="romaji-uppercase-check" class="input-mode-setting-check">
@@ -1916,6 +2011,7 @@ const SHOW_ROMAJI_KEY = "showRomaji";
 const SHOW_HIRAGANA_KEY = "showHiragana";
 const ROMAJI_UPPERCASE_KEY = "romajiUppercase";
 const GUEST_PLAY_RECORDS_KEY = "guestPlayRecords";
+const SHOW_KEYBOARD_KEY = "showKeyboard";
 const PLAY_RECORD_MAX = 20;
 const currentPlayerLabelEl = document.getElementById("current-player-label");
 const logoutBtnEl = document.getElementById("logout-btn");
@@ -2933,6 +3029,7 @@ async function beginOnlineMatch(){
     romajiDisplayEl.scrollLeft = 0;
   }
   renderWord();
+  showNextKey();
   inputEl.value = "";
   inputEl.classList.remove("shake");
   resetHintLabel();
@@ -3073,36 +3170,70 @@ function updateInputModeUI(){
 let showRomaji = localStorage.getItem(SHOW_ROMAJI_KEY) !== "false";
 let showHiragana = localStorage.getItem(SHOW_HIRAGANA_KEY) !== "false";
 let romajiUppercase = localStorage.getItem(ROMAJI_UPPERCASE_KEY) === "true";
+let showKeyboard = localStorage.getItem(SHOW_KEYBOARD_KEY) !== "false";
 
 const showRomajiCheckEl = document.getElementById("show-romaji-check");
 const showHiraganaCheckEl = document.getElementById("show-hiragana-check");
 const romajiUppercaseCheckEl = document.getElementById("romaji-uppercase-check");
+const showKeyboardCheckEl = document.getElementById("show-keyboard-check");
+const keyboardGuideEl = document.getElementById("keyboard-guide");
 
 function applyRomajiUppercaseUI(){
   if(romajiDisplayEl) romajiDisplayEl.classList.toggle("uppercase", romajiUppercase);
+}
+
+function applyKeyboardUI(){
+  if(!keyboardGuideEl) return;
+  const visible = inputMode === "realtime" && showKeyboard;
+  keyboardGuideEl.classList.toggle("visible", visible);
+  showNextKey();
+}
+
+function highlightKeyboardKey(key){
+  if(!keyboardGuideEl || !keyboardGuideEl.classList.contains("visible")) return;
+  keyboardGuideEl.querySelectorAll(".kb-key").forEach(el => el.classList.remove("active"));
+  if(!key) return;
+  const upper = key.toUpperCase();
+  keyboardGuideEl.querySelectorAll(".kb-key").forEach(el => {
+    if(el.textContent.trim() === upper) el.classList.add("active");
+  });
+}
+
+function showNextKey(){
+  if(!keyboardGuideEl || !keyboardGuideEl.classList.contains("visible")) return;
+  keyboardGuideEl.querySelectorAll(".kb-key").forEach(el => el.classList.remove("next"));
+  if(!typingText || !typingText.remainingRoman) return;
+  const next = typingText.remainingRoman[0].toUpperCase();
+  keyboardGuideEl.querySelectorAll(".kb-key").forEach(el => {
+    if(el.textContent.trim() === next) el.classList.add("next");
+  });
 }
 
 function refreshDisplaySettingCheckboxes(){
   if(showRomajiCheckEl) showRomajiCheckEl.checked = showRomaji;
   if(showHiraganaCheckEl) showHiraganaCheckEl.checked = showHiragana;
   if(romajiUppercaseCheckEl) romajiUppercaseCheckEl.checked = romajiUppercase;
+  if(showKeyboardCheckEl) showKeyboardCheckEl.checked = showKeyboard;
 }
 
 function applyDisplaySettings(settings){
   showRomaji = settings && settings.showRomaji !== undefined ? settings.showRomaji !== false : true;
   showHiragana = settings && settings.showHiragana !== undefined ? settings.showHiragana !== false : true;
   romajiUppercase = settings && settings.romajiUppercase === true;
+  showKeyboard = settings && settings.showKeyboard !== undefined ? settings.showKeyboard !== false : true;
   refreshDisplaySettingCheckboxes();
   updateInputModeUI();
   renderSentenceReading();
   applyRomajiUppercaseUI();
+  applyKeyboardUI();
 }
 
 function getGuestDisplaySettings(){
   return {
     showRomaji: localStorage.getItem(SHOW_ROMAJI_KEY) !== "false",
     showHiragana: localStorage.getItem(SHOW_HIRAGANA_KEY) !== "false",
-    romajiUppercase: localStorage.getItem(ROMAJI_UPPERCASE_KEY) === "true"
+    romajiUppercase: localStorage.getItem(ROMAJI_UPPERCASE_KEY) === "true",
+    showKeyboard: localStorage.getItem(SHOW_KEYBOARD_KEY) !== "false"
   };
 }
 
@@ -3110,6 +3241,7 @@ function saveGuestDisplaySettings(){
   localStorage.setItem(SHOW_ROMAJI_KEY, String(showRomaji));
   localStorage.setItem(SHOW_HIRAGANA_KEY, String(showHiragana));
   localStorage.setItem(ROMAJI_UPPERCASE_KEY, String(romajiUppercase));
+  localStorage.setItem(SHOW_KEYBOARD_KEY, String(showKeyboard));
 }
 
 function handleDisplaySettingChange(){
@@ -3119,7 +3251,7 @@ function handleDisplaySettingChange(){
     fetch(`${RANKING_API_URL}/auth`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "setDisplaySettings", token, showRomaji, showHiragana, romajiUppercase })
+      body: JSON.stringify({ action: "setDisplaySettings", token, showRomaji, showHiragana, romajiUppercase, showKeyboard })
     }).catch(() => {});
   } else {
     saveGuestDisplaySettings();
@@ -3150,11 +3282,21 @@ if(romajiUppercaseCheckEl){
   });
 }
 
+if(showKeyboardCheckEl){
+  showKeyboardCheckEl.addEventListener("change", () => {
+    showKeyboard = showKeyboardCheckEl.checked;
+    applyKeyboardUI();
+    handleDisplaySettingChange();
+  });
+}
+
 refreshDisplaySettingCheckboxes();
 applyRomajiUppercaseUI();
+applyKeyboardUI();
 
 const showRomajiLabelEl = document.getElementById("show-romaji-label");
 const romajiUppercaseLabelEl = document.getElementById("romaji-uppercase-label");
+const showKeyboardLabelEl = document.getElementById("show-keyboard-label");
 
 function applyInputMode(mode){
   inputMode = mode === "textbox" ? "textbox" : "realtime";
@@ -3164,7 +3306,9 @@ function applyInputMode(mode){
   const isRealtime = inputMode === "realtime";
   if(showRomajiLabelEl) showRomajiLabelEl.classList.toggle("hidden", !isRealtime);
   if(romajiUppercaseLabelEl) romajiUppercaseLabelEl.classList.toggle("hidden", !isRealtime);
+  if(showKeyboardLabelEl) showKeyboardLabelEl.classList.toggle("hidden", !isRealtime);
   updateInputModeUI();
+  applyKeyboardUI();
   if(inputMode === "realtime" && gameEl.classList.contains("visible")){
     setupRealtimeWord();
   }
@@ -3319,6 +3463,7 @@ function handleRealtimeKey(key){
   hintLabelEl.textContent = "ローマ字でタイピングしよう";
   renderRomajiDisplay();
   updateSentenceProgressHighlight();
+  showNextKey();
 
   if(result === "complete"){
     completeRealtimeWord();
@@ -3332,7 +3477,14 @@ document.addEventListener("keydown", (e) => {
   if(e.metaKey || e.ctrlKey || e.altKey) return;
   if(e.key.length !== 1 || !/^[a-zA-Z\-]$/.test(e.key)) return;
   e.preventDefault();
+  highlightKeyboardKey(e.key);
   handleRealtimeKey(e.key.toLowerCase());
+});
+
+document.addEventListener("keyup", (e) => {
+  if(inputMode !== "realtime") return;
+  if(!gameEl.classList.contains("visible")) return;
+  highlightKeyboardKey(null);
 });
 
 function fitWordDisplayFontSize(){
