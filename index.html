@@ -2276,27 +2276,9 @@ function katakanaToHiragana(str){
 
 const wordListCache = {};
 const sentenceReadingCache = {};
-const WORD_DATA_CACHE_NAME = "simple-typing-word-data-v1";
 
-async function fetchCachedJson(url){
-  if("caches" in window){
-    try{
-      const cache = await caches.open(WORD_DATA_CACHE_NAME);
-      const cachedResponse = await cache.match(url);
-      if(cachedResponse){
-        return cachedResponse;
-      }
-      const response = await fetch(url);
-      if(!response.ok) throw new Error("failed to load data");
-      await cache.put(url, response.clone());
-      return response;
-    }catch(e){
-      const response = await fetch(url, {cache:"force-cache"});
-      if(!response.ok) throw new Error("failed to load data");
-      return response;
-    }
-  }
-  const response = await fetch(url, {cache:"force-cache"});
+async function fetchJson(url){
+  const response = await fetch(url);
   if(!response.ok) throw new Error("failed to load data");
   return response;
 }
@@ -2304,7 +2286,7 @@ async function fetchCachedJson(url){
 async function fetchWordList(mode, level){
   const cacheKey = `${mode}-${level}`;
   if(wordListCache[cacheKey]) return wordListCache[cacheKey];
-  const res = await fetchCachedJson(`words/${cacheKey}.json`);
+  const res = await fetchJson(`words/${cacheKey}.json`);
   const list = await res.json();
   wordListCache[cacheKey] = list;
   return list;
@@ -2313,7 +2295,7 @@ async function fetchWordList(mode, level){
 async function ensureSentenceReadings(level, words){
   if(sentenceReadingCache[level]) return sentenceReadingCache[level];
   try{
-    const res = await fetchCachedJson(`words/sentence-${level}2.json`);
+    const res = await fetchJson(`words/sentence-${level}2.json`);
     const readings = await res.json();
     const map = {};
     (words || []).forEach((word, i) => {
