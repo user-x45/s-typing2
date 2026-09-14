@@ -2010,8 +2010,8 @@ const GUEST_INPUT_MODE_KEY = "guestInputMode";
 const SHOW_ROMAJI_KEY = "showRomaji";
 const SHOW_HIRAGANA_KEY = "showHiragana";
 const ROMAJI_UPPERCASE_KEY = "romajiUppercase";
-const GUEST_PLAY_RECORDS_KEY = "guestPlayRecords";
 const SHOW_KEYBOARD_KEY = "showKeyboard";
+const GUEST_PLAY_RECORDS_KEY = "guestPlayRecords";
 const PLAY_RECORD_MAX = 20;
 const currentPlayerLabelEl = document.getElementById("current-player-label");
 const logoutBtnEl = document.getElementById("logout-btn");
@@ -3029,7 +3029,6 @@ async function beginOnlineMatch(){
     romajiDisplayEl.scrollLeft = 0;
   }
   renderWord();
-  showNextKey();
   inputEl.value = "";
   inputEl.classList.remove("shake");
   resetHintLabel();
@@ -3354,18 +3353,21 @@ function setupRealtimeWord(){
   typingText = buildTypingText(reading);
   renderRomajiDisplay();
   fitRomajiDisplayFontSize();
+  showNextKey();
 }
 
 function renderRomajiDisplay(){
   if(!romajiDisplayEl) return;
   if(!typingText){
     romajiDisplayEl.innerHTML = "";
+    showNextKey();
     return;
   }
   const doneHtml = `<span class="rchar done">${typingText.completedRoman}</span>`;
   const restHtml = `<span class="rchar current">${typingText.remainingRoman}</span>`;
   romajiDisplayEl.innerHTML = doneHtml + restHtml;
   scrollRomajiDisplayToTypedPosition();
+  showNextKey();
 }
 
 function fitRomajiDisplayFontSize(){
@@ -3463,7 +3465,6 @@ function handleRealtimeKey(key){
   hintLabelEl.textContent = "ローマ字でタイピングしよう";
   renderRomajiDisplay();
   updateSentenceProgressHighlight();
-  showNextKey();
 
   if(result === "complete"){
     completeRealtimeWord();
