@@ -1546,14 +1546,20 @@
   }
 
   .kb-key.active{
-    background:var(--hanko);
-    border-color:var(--hanko-deep);
+    background:#ff8c1a;
+    border-color:#e07200;
+    color:#fff;
+  }
+
+  .kb-key.miss{
+    background:#d64545;
+    border-color:#b83838;
     color:#fff;
   }
 
   .kb-key.next{
-    background:var(--hanko);
-    border-color:var(--hanko-deep);
+    background:#ff8c1a;
+    border-color:#e07200;
     color:#fff;
   }
 
@@ -3170,13 +3176,14 @@ function applyKeyboardUI(){
   showNextKey();
 }
 
-function highlightKeyboardKey(key){
+function highlightKeyboardKey(key, isMiss){
   if(!keyboardGuideEl || !keyboardGuideEl.classList.contains("visible")) return;
-  keyboardGuideEl.querySelectorAll(".kb-key").forEach(el => el.classList.remove("active"));
+  keyboardGuideEl.querySelectorAll(".kb-key").forEach(el => el.classList.remove("active", "miss"));
   if(!key) return;
   const upper = key.toUpperCase();
+  const stateClass = isMiss ? "miss" : "active";
   keyboardGuideEl.querySelectorAll(".kb-key").forEach(el => {
-    if(el.textContent.trim() === upper) el.classList.add("active");
+    if(el.textContent.trim() === upper) el.classList.add(stateClass);
   });
 }
 
@@ -3425,14 +3432,14 @@ function completeRealtimeWord(){
 function handleRealtimeKey(key){
   if(!typingText){
     setupRealtimeWord();
-    if(!typingText) return;
+    if(!typingText) return "unmatch";
   }
 
   let result;
   try{
     result = typingText.inputKey(key);
   }catch(e){
-    return;
+    return "unmatch";
   }
 
   if(result === "unmatch"){
@@ -3440,7 +3447,7 @@ function handleRealtimeKey(key){
     hintLabelEl.textContent = "ちがうキーです";
     shakeRomaji();
     playSound(incorrectSoundEl);
-    return;
+    return result;
   }
 
   playSound(keySoundEl);
@@ -3451,6 +3458,7 @@ function handleRealtimeKey(key){
   if(result === "complete"){
     completeRealtimeWord();
   }
+  return result;
 }
 
 document.addEventListener("keydown", (e) => {
@@ -3460,8 +3468,8 @@ document.addEventListener("keydown", (e) => {
   if(e.metaKey || e.ctrlKey || e.altKey) return;
   if(e.key.length !== 1 || !/^[a-zA-Z\-]$/.test(e.key)) return;
   e.preventDefault();
-  highlightKeyboardKey(e.key);
-  handleRealtimeKey(e.key.toLowerCase());
+  const result = handleRealtimeKey(e.key.toLowerCase());
+  highlightKeyboardKey(e.key, result === "unmatch");
 });
 
 document.addEventListener("keyup", (e) => {
