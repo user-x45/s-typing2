@@ -1602,8 +1602,6 @@
         <span class="player-name-label" id="current-player-label"></span>
         <button class="edit-name-btn" id="edit-name-btn" aria-label="名前を変更"><i class="fas fa-pen"></i></button>
       </div>
-      <button class="switch-player-btn" id="google-login-btn"><i class="fab fa-google"></i> ログイン</button>
-      <button class="switch-player-btn hidden" id="logout-btn"><i class="fas fa-right-from-bracket"></i> ログアウト</button>
     </div>
   </div>
 
@@ -1964,40 +1962,15 @@ function renderPlayRecords(records){
   }).join("");
 }
 
-async function fetchAccountPlayRecords(token){
-  try{
-    const res = await fetch(`${RANKING_API_URL}/auth`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "getPlayRecords", token })
-    });
-    const data = await res.json();
-    return Array.isArray(data.playRecords) ? data.playRecords : [];
-  }catch(e){
-    return [];
-  }
-}
-
 async function openPlayRecords(){
   playRecordsOverlayEl.classList.add("visible");
   playRecordsListEl.innerHTML = `<li class="play-records-empty">読み込み中...</li>`;
-  const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
-  const records = isLoggedIn ? await fetchAccountPlayRecords(getSessionToken()) : getGuestPlayRecords();
+  const records = getGuestPlayRecords();
   renderPlayRecords(records);
 }
 
 async function recordPlayResult(mode, level, accuracy, speed, miss, score){
-  const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
-  if(isLoggedIn){
-    const token = getSessionToken();
-    await fetchWithRetry(`${RANKING_API_URL}/auth`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "addPlayRecord", token, mode, level, accuracy, speed, miss, score })
-    }, 4);
-  } else {
-    addGuestPlayRecord({ mode, level, playedAt: Date.now(), accuracy, speed, miss, score });
-  }
+  addGuestPlayRecord({ mode, level, playedAt: Date.now(), accuracy, speed, miss, score });
 }
 
 playRecordsToggleBtnEl.addEventListener("click", () => {
@@ -2008,8 +1981,6 @@ playRecordsCloseBtnEl.addEventListener("click", () => {
   playRecordsOverlayEl.classList.remove("visible");
 });
 
-const GOOGLE_CLIENT_ID = "7365893755-eqm3coij6otohorig4bgq4mtoen1q7sf.apps.googleusercontent.com";
-const SESSION_TOKEN_KEY = "sessionToken";
 const GUEST_NAME_KEY = "guestPlayerName";
 const GUEST_INPUT_MODE_KEY = "guestInputMode";
 const SHOW_ROMAJI_KEY = "showRomaji";
@@ -2019,8 +1990,6 @@ const SHOW_KEYBOARD_KEY = "showKeyboard";
 const GUEST_PLAY_RECORDS_KEY = "guestPlayRecords";
 const PLAY_RECORD_MAX = 20;
 const currentPlayerLabelEl = document.getElementById("current-player-label");
-const logoutBtnEl = document.getElementById("logout-btn");
-const googleLoginBtnEl = document.getElementById("google-login-btn");
 const editNameBtnEl = document.getElementById("edit-name-btn");
 const menuToggleBtnEl = document.getElementById("menu-toggle-btn");
 const menuAuthPanelEl = document.getElementById("menu-auth-panel");
@@ -2032,228 +2001,30 @@ menuToggleBtnEl.addEventListener("click", () => {
 editNameBtnEl.addEventListener("click", () => {
   const prefill = currentPlayerName || "";
   showNameInputModal(async (name) => {
-    const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
-    if(isLoggedIn){
-      const token = getSessionToken();
-      try{
-        const res = await fetch(`${RANKING_API_URL}/auth`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "setName", token, name })
-        });
-        const data = await res.json();
-        if(data.name){
-          currentPlayerName = data.name;
-        } else {
-          showCustomAlert("名前の変更に失敗しました");
-        }
-      }catch(e){
-        showCustomAlert("名前の変更に失敗しました");
-      }
-    } else {
-      currentPlayerName = name;
-      localStorage.setItem(GUEST_NAME_KEY, name);
-    }
+    currentPlayerName = name;
+    localStorage.setItem(GUEST_NAME_KEY, name);
     updatePlayerNameLabel();
     updateSetupHighScore();
   }, prefill);
 });
 
 let currentPlayerName = null;
-let serverHighScores = null;
 
 function getPlayerName(){
   return currentPlayerName;
-}
-
-function getSessionToken(){
-  return localStorage.getItem(SESSION_TOKEN_KEY);
-}
-
-function setSessionToken(token){
-  localStorage.setItem(SESSION_TOKEN_KEY, token);
-}
-
-function clearSessionToken(){
-  localStorage.removeItem(SESSION_TOKEN_KEY);
 }
 
 function updatePlayerNameLabel(){
   currentPlayerLabelEl.textContent = currentPlayerName ? currentPlayerName : "";
 }
 
-async function loadServerHighScores(token){
-  try{
-    const res = await fetch(`${RANKING_API_URL}/auth`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "getHighScores", token })
-    });
-    const data = await res.json();
-    serverHighScores = data.highScores || {};
-  }catch(e){
-    serverHighScores = {};
-  }
-}
-
-async function showLoggedInUi(name, token, inputModeFromAccount, displaySettingsFromAccount){
-  currentPlayerName = name;
-  await loadServerHighScores(token);
-  updatePlayerNameLabel();
-  updateSetupHighScore();
-  googleLoginBtnEl.classList.add("hidden");
-  logoutBtnEl.classList.remove("hidden");
-  applyInputMode(inputModeFromAccount || "realtime");
-  applyDisplaySettings(displaySettingsFromAccount || getGuestDisplaySettings());
-}
-
 function showLoggedOutUi(){
   currentPlayerName = localStorage.getItem(GUEST_NAME_KEY) || "GUEST";
-  serverHighScores = null;
   updatePlayerNameLabel();
   updateSetupHighScore();
-  googleLoginBtnEl.classList.remove("hidden");
-  logoutBtnEl.classList.add("hidden");
   applyInputMode(localStorage.getItem(GUEST_INPUT_MODE_KEY) || "realtime");
   applyDisplaySettings(getGuestDisplaySettings());
 }
-
-async function verifySession(){
-  const token = getSessionToken();
-  if(!token){
-    showLoggedOutUi();
-    return;
-  }
-  try{
-    const res = await fetch(`${RANKING_API_URL}/auth`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "verify", token })
-    });
-    const data = await res.json();
-    if(data.valid){
-      await showLoggedInUi(data.name, token, data.inputMode, data.displaySettings);
-    } else {
-      clearSessionToken();
-      showLoggedOutUi();
-    }
-  }catch(e){
-    showLoggedOutUi();
-  }
-}
-
-async function handleGoogleCredential(idToken){
-  let data;
-  try{
-    const res = await fetch(`${RANKING_API_URL}/auth`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "login", idToken })
-    });
-    data = await res.json();
-  }catch(e){
-    showCustomAlert("ログインに失敗しました");
-    return;
-  }
-  if(data.error){
-    showCustomAlert("ログインに失敗しました");
-    return;
-  }
-  if(data.isNewUser){
-    showNameInputModal(async (name) => {
-      let regData;
-      try{
-        const regRes = await fetch(`${RANKING_API_URL}/auth`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "register", pendingToken: data.pendingToken, name })
-        });
-        regData = await regRes.json();
-      }catch(e){
-        showCustomAlert("登録に失敗しました");
-        return;
-      }
-      if(regData.token){
-        setSessionToken(regData.token);
-        await showLoggedInUi(regData.name, regData.token, regData.inputMode, regData.displaySettings);
-      } else {
-        showCustomAlert("登録に失敗しました");
-      }
-    });
-  } else {
-    setSessionToken(data.token);
-    await showLoggedInUi(data.name, data.token, data.inputMode, data.displaySettings);
-  }
-}
-
-const GOOGLE_AUTH_NONCE_KEY = "googleAuthNonce";
-
-function generateGoogleAuthNonce(){
-  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
-function startGoogleLogin(){
-  const nonce = generateGoogleAuthNonce();
-  sessionStorage.setItem(GOOGLE_AUTH_NONCE_KEY, nonce);
-  const redirectUri = `${window.location.origin}${window.location.pathname}`;
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: redirectUri,
-    response_type: "id_token",
-    scope: "openid",
-    nonce,
-    prompt: "select_account"
-  });
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-}
-
-function decodeGoogleIdTokenPayload(idToken){
-  const payloadPart = idToken.split(".")[1];
-  const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
-  return JSON.parse(atob(base64));
-}
-
-async function processGoogleAuthRedirect(){
-  const hash = window.location.hash;
-  if(!hash || !hash.includes("id_token")) return false;
-  const params = new URLSearchParams(hash.substring(1));
-  const idToken = params.get("id_token");
-  const error = params.get("error");
-  history.replaceState(null, "", window.location.pathname + window.location.search);
-  if(error || !idToken) return false;
-  const expectedNonce = sessionStorage.getItem(GOOGLE_AUTH_NONCE_KEY);
-  sessionStorage.removeItem(GOOGLE_AUTH_NONCE_KEY);
-  try{
-    const payload = decodeGoogleIdTokenPayload(idToken);
-    if(expectedNonce && payload.nonce !== expectedNonce){
-      showCustomAlert("ログインに失敗しました");
-      return true;
-    }
-  }catch(e){
-    showCustomAlert("ログインに失敗しました");
-    return true;
-  }
-  await handleGoogleCredential(idToken);
-  return true;
-}
-
-googleLoginBtnEl.addEventListener("click", () => {
-  startGoogleLogin();
-});
-
-logoutBtnEl.addEventListener("click", () => {
-  const token = getSessionToken();
-  clearSessionToken();
-  showLoggedOutUi();
-  if(token){
-    fetch(`${RANKING_API_URL}/auth`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "logout", token })
-    }).catch(() => {});
-  }
-});
 
 const appLoadingOverlayEl = document.getElementById("app-loading-overlay");
 let appLoadingCount = 1;
@@ -2269,9 +2040,8 @@ function hideAppLoadingOverlay(){
 }
 
 window.addEventListener("load", async () => {
-  const handledGoogleRedirect = await processGoogleAuthRedirect();
-  const sessionLoadPromise = handledGoogleRedirect ? Promise.resolve() : verifySession();
-  Promise.all([initialRankingLoadPromise, sessionLoadPromise]).finally(hideAppLoadingOverlay);
+  showLoggedOutUi();
+  Promise.all([initialRankingLoadPromise]).finally(hideAppLoadingOverlay);
 });
 
 
@@ -2464,27 +2234,12 @@ function getHighScoreKey(mode, level){
 
 function getHighScore(mode, level){
   const key = getHighScoreKey(mode, level);
-  if(serverHighScores){
-    return serverHighScores[key] || 0;
-  }
   const value = localStorage.getItem(key);
   return value ? parseInt(value, 10) : 0;
 }
 
 function setHighScore(mode, level, newScore){
   const key = getHighScoreKey(mode, level);
-  if(serverHighScores){
-    serverHighScores[key] = newScore;
-    const token = getSessionToken();
-    if(token){
-      fetch(`${RANKING_API_URL}/auth`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "setHighScore", token, mode, level, score: newScore })
-      }).catch(() => {});
-    }
-    return;
-  }
   localStorage.setItem(key, String(newScore));
 }
 
@@ -3232,17 +2987,7 @@ function saveGuestDisplaySettings(){
 }
 
 function handleDisplaySettingChange(){
-  const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
-  if(isLoggedIn){
-    const token = getSessionToken();
-    fetch(`${RANKING_API_URL}/auth`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "setDisplaySettings", token, showRomaji, showHiragana, romajiUppercase, showKeyboard })
-    }).catch(() => {});
-  } else {
-    saveGuestDisplaySettings();
-  }
+  saveGuestDisplaySettings();
 }
 
 if(showRomajiCheckEl){
@@ -3305,17 +3050,7 @@ document.querySelectorAll(".input-mode-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const selectedMode = btn.dataset.inputMode;
     applyInputMode(selectedMode);
-    const isLoggedIn = !logoutBtnEl.classList.contains("hidden");
-    if(isLoggedIn){
-      const token = getSessionToken();
-      fetch(`${RANKING_API_URL}/auth`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "setInputMode", token, inputMode: selectedMode })
-      }).catch(() => {});
-    } else {
-      localStorage.setItem(GUEST_INPUT_MODE_KEY, selectedMode);
-    }
+    localStorage.setItem(GUEST_INPUT_MODE_KEY, selectedMode);
   });
 });
 
