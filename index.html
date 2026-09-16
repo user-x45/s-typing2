@@ -874,28 +874,6 @@
     letter-spacing:0.05em;
   }
 
-  .event-banner{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    margin:0 0 16px;
-    padding:10px 14px;
-    border-radius:16px;
-    background:linear-gradient(135deg, var(--gold), var(--hanko));
-    color:#fff;
-    font-size:13px;
-    font-weight:700;
-    letter-spacing:0.05em;
-    text-align:center;
-    animation:eventPulse 1.8s ease-in-out infinite;
-  }
-
-  @keyframes eventPulse{
-    0%, 100%{ box-shadow:0 0 0 0 rgba(255,207,92,0.5); }
-    50%{ box-shadow:0 0 0 8px rgba(255,207,92,0); }
-  }
-
   .ranking-box{
     margin-top:22px;
     padding-top:18px;
@@ -1608,7 +1586,6 @@
   <div class="panel">
 
     <div class="setup" id="setup">
-      <div class="event-banner hidden" id="event-banner"><i class="fas fa-star"></i> <span id="event-banner-text">イベント開催中！</span></div>
       <div class="mode-tabs">
         <button class="mode-btn active" data-mode="hiragana">ひらがな</button>
         <button class="mode-btn" data-mode="katakana">カタカナ</button>
@@ -2218,8 +2195,6 @@ muteBtn.addEventListener("change", () => {
 });
 
 const rankingBoxEl = document.getElementById("ranking-box");
-const eventBannerEl = document.getElementById("event-banner");
-const eventBannerTextEl = document.getElementById("event-banner-text");
 const rankingListEl = document.getElementById("ranking-list");
 const rankingTitleEl = document.querySelector(".ranking-title");
 const resultRankBadgeEl = document.getElementById("result-rank-badge");
@@ -2284,7 +2259,7 @@ async function loadRanking(){
   rankingBoxEl.classList.add("hidden");
   rankingListEl.innerHTML = "";
   try{
-    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}`);
+    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`);
     if(requestId !== rankingRequestId) return;
     if(!res.ok){
       rankingBoxEl.classList.add("hidden");
@@ -2293,13 +2268,6 @@ async function loadRanking(){
     }
     const data = await res.json();
     if(requestId !== rankingRequestId) return;
-    if(data.eventMode){
-      rankingTitleEl.innerHTML = `<i class="fas fa-trophy"></i> ${data.month}限定ランキング TOP20（${modeLabel}・${levelLabels[level]}）`;
-      eventBannerTextEl.textContent = `${data.month}イベント開催中！`;
-      eventBannerEl.classList.remove("hidden");
-    } else {
-      eventBannerEl.classList.add("hidden");
-    }
     renderRanking(data.scores);
   }catch(e){
     if(requestId !== rankingRequestId) return;
@@ -2335,7 +2303,7 @@ async function requestGameSessionToken(mode, level){
   const attempts = 4;
   for(let i = 0; i < attempts; i++){
     try{
-      const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}`, {
+      const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "startSession" })
@@ -2357,7 +2325,7 @@ async function submitScoreToRanking(score, mode, level, name){
   if(!currentGameSessionToken) return;
   const token = currentGameSessionToken;
   currentGameSessionToken = null;
-  const res = await fetchWithRetry(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}`, {
+  const res = await fetchWithRetry(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ score, name, token })
@@ -2378,7 +2346,7 @@ async function submitScoreToRanking(score, mode, level, name){
 
 async function checkRankQualifies(score, mode, level){
   try{
-    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}`);
+    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`);
     if(!res.ok) return true;
     const data = await res.json();
     const scores = data.scores;
