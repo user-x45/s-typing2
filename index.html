@@ -2038,7 +2038,7 @@ async function fetchJson(url){
 async function fetchWordList(mode, level){
   const cacheKey = `${mode}-${level}`;
   if(wordListCache[cacheKey]) return wordListCache[cacheKey];
-  const res = await fetchJson(`words/${cacheKey}.json`);
+  const res = await fetchJson(`https://s-typing.f5.si/words/${cacheKey}.json`);
   const list = await res.json();
   wordListCache[cacheKey] = list;
   return list;
@@ -2047,7 +2047,7 @@ async function fetchWordList(mode, level){
 async function ensureSentenceReadings(level, words){
   if(sentenceReadingCache[level]) return sentenceReadingCache[level];
   try{
-    const res = await fetchJson(`words/sentence-${level}2.json`);
+    const res = await fetchJson(`https://s-typing.f5.si/words/sentence-${level}2.json`);
     const readings = await res.json();
     const map = {};
     (words || []).forEach((word, i) => {
