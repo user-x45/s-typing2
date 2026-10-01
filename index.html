@@ -2299,36 +2299,11 @@ async function fetchWithRetry(url, options, attempts){
   return null;
 }
 
-async function requestGameSessionToken(mode, level){
-  const attempts = 4;
-  for(let i = 0; i < attempts; i++){
-    try{
-      const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "startSession" })
-      });
-      if(res.ok){
-        const data = await res.json();
-        if(data.token) return data.token;
-      }
-    }catch(e){
-    }
-    if(i < attempts - 1){
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-    }
-  }
-  return null;
-}
-
 async function submitScoreToRanking(score, mode, level, name){
-  if(!currentGameSessionToken) return;
-  const token = currentGameSessionToken;
-  currentGameSessionToken = null;
   const res = await fetchWithRetry(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ score, name, token })
+    body: JSON.stringify({ score, name })
   }, 4);
   if(!res) return;
   try{
@@ -2371,7 +2346,6 @@ async function handleRankingSubmission(score, mode, level){
 
 const initialRankingLoadPromise = loadRanking();
 
-let currentGameSessionToken = null;
 let ws = null;
 let matchId = null;
 let myRole = null;
@@ -3218,8 +3192,6 @@ function nextWord(){
 
 async function startGame(){
   logPlay(currentMode, currentLevel, "solo", "");
-  currentGameSessionToken = null;
-  requestGameSessionToken(currentMode, currentLevel).then(token => { currentGameSessionToken = token; });
   showAppLoadingOverlay();
   await ensureWordList(currentMode, currentLevel);
   hideAppLoadingOverlay();
@@ -3347,6 +3319,14 @@ function shakeInput(){
 inputEl.addEventListener("compositionstart", () => { isComposing = true; });
 inputEl.addEventListener("compositionend", () => {
   setTimeout(() => { isComposing = false; }, 0);
+});
+
+inputEl.addEventListener("paste", (e) => {
+  e.preventDefault();
+});
+
+inputEl.addEventListener("drop", (e) => {
+  e.preventDefault();
 });
 
 
