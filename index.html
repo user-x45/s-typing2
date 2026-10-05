@@ -3266,7 +3266,9 @@ function endGame(isNormalEnd){
     const attempts = score + missCount;
     const accuracy = attempts === 0 ? 0 : Math.round((score / attempts) * 100);
     const speed = Math.round((totalCharsTyped / 100) * 60);
-    const finalScore = Math.max(0, Math.round(score * 100 + speed * 2 - missCount * 30));
+    const baseScore = score * 100 + speed * 2;
+    const missPenalty = Math.min(missCount * 30, baseScore * 0.5);
+    const finalScore = Math.max(0, Math.round(baseScore - missPenalty));
 
     resultScoreEl.textContent = finalScore;
     const modeLabel = modeLabels[currentMode] || "ひらがな";
