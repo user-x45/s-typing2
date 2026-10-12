@@ -99,6 +99,85 @@
     padding:clamp(8px,2vh,16px) 16px;
   }
 
+  .mobile-warning-overlay,
+  .custom-alert-overlay,
+  .name-input-overlay,
+  .input-mode-overlay{
+    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(6px);
+  }
+
+  .mobile-warning-overlay.visible,
+  .custom-alert-overlay.visible,
+  .name-input-overlay.visible,
+  .input-mode-overlay.visible{
+    animation:overlay-fade-in 0.25s ease both;
+  }
+
+  .mobile-warning-overlay.visible .mobile-warning-box,
+  .custom-alert-overlay.visible .custom-alert-box,
+  .name-input-overlay.visible .name-input-box,
+  .input-mode-overlay.visible .input-mode-box{
+    animation:popup-pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+
+  .mobile-warning-overlay.closing,
+  .custom-alert-overlay.closing,
+  .name-input-overlay.closing,
+  .input-mode-overlay.closing{
+    display:flex;
+    pointer-events:none;
+    animation:overlay-fade-out 0.2s ease both;
+  }
+
+  .mobile-warning-overlay.closing .mobile-warning-box,
+  .custom-alert-overlay.closing .custom-alert-box,
+  .name-input-overlay.closing .name-input-box,
+  .input-mode-overlay.closing .input-mode-box{
+    animation:popup-pop-out 0.2s ease both;
+  }
+
+  @keyframes overlay-fade-in{
+    from{ opacity:0; }
+    to{ opacity:1; }
+  }
+
+  @keyframes overlay-fade-out{
+    from{ opacity:1; }
+    to{ opacity:0; }
+  }
+
+  @keyframes popup-pop-in{
+    from{ opacity:0; transform:translateY(16px) scale(0.92); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  @keyframes popup-pop-out{
+    from{ opacity:1; transform:translateY(0) scale(1); }
+    to{ opacity:0; transform:translateY(10px) scale(0.95); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .mobile-warning-overlay.visible,
+    .custom-alert-overlay.visible,
+    .name-input-overlay.visible,
+    .input-mode-overlay.visible,
+    .mobile-warning-overlay.closing,
+    .custom-alert-overlay.closing,
+    .name-input-overlay.closing,
+    .input-mode-overlay.closing,
+    .mobile-warning-overlay.visible .mobile-warning-box,
+    .custom-alert-overlay.visible .custom-alert-box,
+    .name-input-overlay.visible .name-input-box,
+    .input-mode-overlay.visible .input-mode-box,
+    .mobile-warning-overlay.closing .mobile-warning-box,
+    .custom-alert-overlay.closing .custom-alert-box,
+    .name-input-overlay.closing .name-input-box,
+    .input-mode-overlay.closing .input-mode-box{
+      animation:none;
+    }
+  }
+
   .stage{
     width:100%;
     max-width:640px;
@@ -3483,6 +3562,39 @@ document.addEventListener("visibilitychange", () => {
   overlay.classList.add("visible");
   closeBtn.addEventListener("click", () => {
     overlay.classList.remove("visible");
+  });
+})();
+
+(function(){
+  const selector = ".mobile-warning-overlay, .custom-alert-overlay, .name-input-overlay, .input-mode-overlay";
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const timers = new WeakMap();
+
+  function finishClosing(el){
+    clearTimeout(timers.get(el));
+    el.classList.remove("closing");
+  }
+
+  const observer = new MutationObserver(records => {
+    records.forEach(record => {
+      const el = record.target;
+      const wasVisible = (record.oldValue || "").split(/\s+/).includes("visible");
+      if(el.classList.contains("visible")){
+        if(el.classList.contains("closing")) finishClosing(el);
+        return;
+      }
+      if(wasVisible && !el.classList.contains("closing") && !reduceMotion.matches){
+        el.classList.add("closing");
+        timers.set(el, setTimeout(() => finishClosing(el), 400));
+      }
+    });
+  });
+
+  document.querySelectorAll(selector).forEach(el => {
+    observer.observe(el, { attributes:true, attributeFilter:["class"], attributeOldValue:true });
+    el.addEventListener("animationend", e => {
+      if(e.target === el && el.classList.contains("closing")) finishClosing(el);
+    });
   });
 })();
 </script>
