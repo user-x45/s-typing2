@@ -344,6 +344,26 @@
     line-height:1.6;
   }
 
+  .mobile-warning-check{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin:0 0 18px;
+    font-size:13px;
+    color:var(--ink);
+    cursor:pointer;
+    user-select:none;
+  }
+
+  .mobile-warning-check input{
+    width:16px;
+    height:16px;
+    margin:0;
+    accent-color:var(--hanko);
+    cursor:pointer;
+  }
+
   .mobile-warning-btn{
     padding:10px 32px;
     background:var(--hanko);
@@ -1670,6 +1690,7 @@
 <div class="mobile-warning-overlay" id="mobile-warning-overlay">
   <div class="mobile-warning-box">
     <p class="mobile-warning-message">このサイトはスマートフォンに最適化されていません。<br>パソコンでの閲覧を推奨します。</p>
+    <label class="mobile-warning-check"><input type="checkbox" id="mobile-warning-hide"><span>今後表示しない</span></label>
     <button class="mobile-warning-btn" id="mobile-warning-close">閉じる</button>
   </div>
 </div>
@@ -3557,10 +3578,20 @@ document.addEventListener("visibilitychange", () => {
 (function(){
   const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
   if(!isMobile) return;
+  const STORAGE_KEY = "mobileWarningHidden";
+  try{
+    if(localStorage.getItem(STORAGE_KEY) === "1") return;
+  }catch(e){}
   const overlay = document.getElementById("mobile-warning-overlay");
   const closeBtn = document.getElementById("mobile-warning-close");
+  const hideCheck = document.getElementById("mobile-warning-hide");
   overlay.classList.add("visible");
   closeBtn.addEventListener("click", () => {
+    if(hideCheck.checked){
+      try{
+        localStorage.setItem(STORAGE_KEY, "1");
+      }catch(e){}
+    }
     overlay.classList.remove("visible");
   });
 })();
