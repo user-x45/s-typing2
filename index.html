@@ -1070,6 +1070,42 @@
     margin-bottom:4px;
   }
 
+  .about-section{
+    margin-top:22px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+    font-size:13px;
+    line-height:1.8;
+    color:var(--ink-soft);
+  }
+
+  .about-section h2{
+    text-align:center;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    color:var(--gold);
+    margin:0 0 10px;
+  }
+
+  .about-section h3{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+    margin:16px 0 4px;
+  }
+
+  .about-section p{
+    margin:0 0 8px;
+  }
+
+  .noscript-message{
+    max-width:640px;
+    margin:40px auto;
+    padding:0 16px;
+    line-height:1.8;
+  }
+
   .site-footer-links{
     display:flex;
     justify-content:center;
@@ -1687,6 +1723,14 @@
 </style>
 </head>
 <body>
+<noscript>
+  <div class="noscript-message">
+    <h1>シンプルタイピング</h1>
+    <p>シンプルタイピングは、無料で遊べるひらがな・カタカナ・文章のタイピング練習ゲームです。初級・中級・上級からレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競ったりできます。</p>
+    <p>ゲームを遊ぶにはJavaScriptを有効にしてください。</p>
+    <p><a href="/terms/">利用規約</a> ／ <a href="/privacy/">プライバシーポリシー</a></p>
+  </div>
+</noscript>
 <div class="mobile-warning-overlay" id="mobile-warning-overlay">
   <div class="mobile-warning-box">
     <p class="mobile-warning-message">このサイトはスマートフォンに最適化されていません。<br>パソコンでの閲覧を推奨します。</p>
@@ -1779,6 +1823,20 @@
           <li>ランキングは総合スコアをもとに集計され、不正な行為が確認された場合は登録内容を削除する場合があります。</li>
           <li>名前は6文字まで登録できます。不適切な名前は運営により変更・削除される場合があります。</li>
         </ul>
+
+        <section class="about-section" id="about">
+          <h2>シンプルタイピングについて</h2>
+          <p>シンプルタイピングは、登録なしですぐに遊べる無料のタイピング練習ゲームです。表示された言葉をローマ字入力やかな入力で素早く正確に打ち込み、制限時間内のスコアを競います。パソコンのキーボードでの練習に向いており、タイピングを始めたばかりの方から、さらに速度を伸ばしたい方まで楽しめます。</p>
+
+          <h3>ひらがな・カタカナ・文章の3つのモード</h3>
+          <p>ひらがなモードでは身近な言葉を、カタカナモードではカタカナ語を練習できます。文章モードでは短い一文を入力するため、実際の文章入力に近い感覚で練習できます。各モードは文字数に応じて初級・中級・上級に分かれているので、自分に合った難易度を選べます。</p>
+
+          <h3>オンライン対戦とフレンド対戦</h3>
+          <p>オンライン対戦では、同じモード・レベルを選んだ相手とリアルタイムでスコアを競えます。フレンド対戦では、招待コードを共有して友達とだけ対戦できます。</p>
+
+          <h3>タイピング上達のコツ</h3>
+          <p>最初は速さよりも正確さを意識し、ホームポジション（左手はFDSA、右手はJKL;）に指を置いて、画面を見たまま打つ練習を続けるのが上達への近道です。毎日5分でも続けることで、打鍵の速度とミスの少なさが着実に伸びていきます。</p>
+        </section>
 
         <div class="site-footer-links"><a href="/terms/">利用規約</a><a href="/privacy/">プライバシーポリシー</a></div>
         <div class="site-footer">© <span id="footer-year"></span> シンプルタイピング</div>
@@ -2269,20 +2327,17 @@ const ALL_LEVELS = ["beginner", "intermediate", "advanced"];
 
 async function preloadAllWordLists(){
   showAppLoadingOverlay();
+  const tasks = [];
   for(const mode of ALL_MODES){
     for(const level of ALL_LEVELS){
-      let loaded = false;
-      while(!loaded){
-        try{
-          await ensureWordList(mode, level);
-          loaded = true;
-        }catch(e){
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-      }
+      tasks.push(ensureWordList(mode, level));
     }
   }
-  hideAppLoadingOverlay();
+  try{
+    await Promise.all(tasks);
+  }finally{
+    hideAppLoadingOverlay();
+  }
 }
 
 function getCurrentWordReading(){
