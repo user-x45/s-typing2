@@ -3630,6 +3630,82 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+const PRESENCE_PING_MS = 30000;
+const PRESENCE_SYNC_MS = 1000;
+let presenceSocket = null;
+let presenceRetry = 0;
+let presenceReconnectTimer = null;
+let presenceLastSent = "";
+
+function computePresenceState(){
+  let activity = "idle";
+  if(gameEl.classList.contains("visible")){
+    activity = isOnlineMode ? (friendRole ? "friend" : "online") : "solo";
+  } else if(countdownEl.classList.contains("visible")){
+    activity = ws ? (friendRole ? "friend" : "online") : "solo";
+  } else if(
+    searchingEl.classList.contains("visible") ||
+    friendCreateEl.classList.contains("visible") ||
+    friendWaitingEl.classList.contains("visible") ||
+    friendJoinEl.classList.contains("visible")
+  ){
+    activity = "matching";
+  }
+  const active = activity !== "idle";
+  return {
+    type: "state",
+    page: "school",
+    activity,
+    mode: active ? currentMode : "",
+    level: active ? currentLevel : "",
+    name: normalizePlayerName(getPlayerName())
+  };
+}
+
+function syncPresence(){
+  if(!presenceSocket || presenceSocket.readyState !== WebSocket.OPEN) return;
+  const payload = JSON.stringify(computePresenceState());
+  if(payload === presenceLastSent) return;
+  presenceLastSent = payload;
+  presenceSocket.send(payload);
+}
+
+function schedulePresenceReconnect(){
+  clearTimeout(presenceReconnectTimer);
+  const delay = Math.min(60000, 1000 * 2 ** presenceRetry) + Math.floor(Math.random() * 1000);
+  presenceRetry++;
+  presenceReconnectTimer = setTimeout(connectPresence, delay);
+}
+
+function connectPresence(){
+  let socket;
+  try{
+    socket = new WebSocket(`${ONLINE_SERVER_URL}/presence`);
+  }catch(e){
+    schedulePresenceReconnect();
+    return;
+  }
+  presenceSocket = socket;
+  socket.onopen = () => {
+    presenceRetry = 0;
+    presenceLastSent = "";
+    syncPresence();
+  };
+  socket.onclose = () => {
+    if(presenceSocket === socket) presenceSocket = null;
+    presenceLastSent = "";
+    schedulePresenceReconnect();
+  };
+}
+
+connectPresence();
+setInterval(syncPresence, PRESENCE_SYNC_MS);
+setInterval(() => {
+  if(presenceSocket && presenceSocket.readyState === WebSocket.OPEN){
+    presenceSocket.send(JSON.stringify({ type: "ping" }));
+  }
+}, PRESENCE_PING_MS);
+
 (function(){
   const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
   if(!isMobile) return;
