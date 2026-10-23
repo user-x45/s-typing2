@@ -988,6 +988,42 @@
     margin-bottom:12px;
   }
 
+  .ranking-tabs{
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    margin-bottom:12px;
+  }
+
+  .ranking-tab{
+    padding:6px 18px;
+    background:var(--panel-bg-soft);
+    border:1px solid var(--line);
+    border-radius:14px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.2s ease;
+  }
+
+  .ranking-tab.active{
+    background:var(--hanko);
+    border-color:var(--hanko);
+    color:#fff;
+  }
+
+  .ranking-period-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin:-4px 0 10px;
+  }
+
+  .ranking-period-note:empty{
+    display:none;
+  }
+
   .ranking-list{
     list-style:none;
     margin:0;
@@ -1803,6 +1839,12 @@
 
       <div class="ranking-box hidden" id="ranking-box">
         <div class="ranking-title"><i class="fas fa-trophy"></i> ランキング TOP20（総合スコア）</div>
+        <div class="ranking-tabs" id="ranking-tabs">
+          <button type="button" class="ranking-tab active" data-period="total">全期間</button>
+          <button type="button" class="ranking-tab" data-period="month">今月</button>
+          <button type="button" class="ranking-tab" data-period="week">今週</button>
+        </div>
+        <div class="ranking-period-note" id="ranking-period-note"></div>
         <ol class="ranking-list" id="ranking-list"></ol>
       </div>
 
@@ -2463,7 +2505,10 @@ function updateSetupHighScore(){
 }
 
 let rankingRequestId = 0;
+let currentRankingPeriod = "total";
 const RANKING_DISPLAY_MAX = 20;
+const RANKING_PERIOD_LABELS = { total: "全期間", month: "今月", week: "今週" };
+const RANKING_PERIOD_NOTES = { total: "", month: "毎月1日 0:00にリセット", week: "毎週日曜 0:00にリセット" };
 
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, (ch) => ({
@@ -2476,9 +2521,14 @@ function escapeHtml(str){
 }
 
 function renderRanking(scores){
-  if(!Array.isArray(scores) || scores.length === 0){
+  if(!Array.isArray(scores)){
     rankingBoxEl.classList.add("hidden");
     rankingListEl.innerHTML = "";
+    return;
+  }
+  if(scores.length === 0){
+    rankingListEl.innerHTML = `<li class="ranking-loading">まだ記録がありません</li>`;
+    rankingBoxEl.classList.remove("hidden");
     return;
   }
   rankingListEl.innerHTML = scores.map((s, i) => {
@@ -2490,16 +2540,22 @@ function renderRanking(scores){
   rankingBoxEl.classList.remove("hidden");
 }
 
-async function loadRanking(){
+async function loadRanking(keepBox){
   const requestId = ++rankingRequestId;
   const mode = currentMode;
   const level = currentLevel;
+  const period = currentRankingPeriod;
   const modeLabel = modeLabels[mode] || "ひらがな";
+  document.getElementById("ranking-period-note").textContent = RANKING_PERIOD_NOTES[period] || "";
   rankingTitleEl.innerHTML = `<i class="fas fa-trophy"></i> ランキング TOP20（${modeLabel}・${levelLabels[level]}）`;
-  rankingBoxEl.classList.add("hidden");
-  rankingListEl.innerHTML = "";
+  if(keepBox === true){
+    rankingListEl.innerHTML = `<li class="ranking-loading">読み込み中...</li>`;
+  } else {
+    rankingBoxEl.classList.add("hidden");
+    rankingListEl.innerHTML = "";
+  }
   try{
-    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`);
+    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&period=${period}&force=normal`);
     if(requestId !== rankingRequestId) return;
     if(!res.ok){
       rankingBoxEl.classList.add("hidden");
@@ -2602,20 +2658,25 @@ async function submitScoreToRanking(gameId, mode, level, name){
   }
   try{
     const data = await res.json();
+    const periods = data.periods || {};
     if(mode === currentMode && level === currentLevel){
-      renderRanking(data.top20);
+      const shown = periods[currentRankingPeriod];
+      renderRanking(shown ? shown.top20 : data.top20);
     }
-    if(data.rank){
-      resultRankBadgeEl.innerHTML = `<i class="fas fa-trophy"></i> ランキング ${data.rank}位にランクインしました！`;
+    const ranked = ["total", "month", "week"]
+      .filter(p => periods[p] && periods[p].rank)
+      .map(p => `${RANKING_PERIOD_LABELS[p]}${periods[p].rank}位`);
+    if(ranked.length > 0){
+      resultRankBadgeEl.innerHTML = `<i class="fas fa-trophy"></i> ランキング ${ranked.join("・")}にランクインしました！`;
       resultRankBadgeEl.classList.add("visible");
     }
   }catch(e){
   }
 }
 
-async function checkRankQualifies(score, mode, level){
+async function periodRankQualifies(score, mode, level, period){
   try{
-    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`);
+    const res = await fetch(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&period=${period}&force=normal`);
     if(!res.ok) return true;
     const data = await res.json();
     const scores = data.scores;
@@ -2627,6 +2688,13 @@ async function checkRankQualifies(score, mode, level){
   }catch(e){
     return true;
   }
+}
+
+async function checkRankQualifies(score, mode, level){
+  const results = await Promise.all(
+    ["total", "month", "week"].map(period => periodRankQualifies(score, mode, level, period))
+  );
+  return results.some(Boolean);
 }
 
 async function handleRankingSubmission(mode, level, finishPromise){
@@ -2642,6 +2710,18 @@ async function handleRankingSubmission(mode, level, finishPromise){
   await submitScoreToRanking(session.gameId, mode, level, name);
   if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.remove("visible");
 }
+
+document.getElementById("ranking-tabs").addEventListener("click", (e) => {
+  const btn = e.target.closest(".ranking-tab");
+  if(!btn) return;
+  const period = btn.dataset.period;
+  if(period === currentRankingPeriod) return;
+  currentRankingPeriod = period;
+  document.querySelectorAll("#ranking-tabs .ranking-tab").forEach(node => {
+    node.classList.toggle("active", node === btn);
+  });
+  loadRanking(true);
+});
 
 const initialRankingLoadPromise = loadRanking();
 
