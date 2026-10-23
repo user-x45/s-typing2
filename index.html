@@ -10,7 +10,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="無料で遊べるひらがな・カタカナ・文章タイピング練習ゲーム。初級から上級までレベルを選んで一人で練習したり、オンライン対戦で全国のプレイヤーとタイピング速度を競えます。">
 <link rel="canonical" href="https://s-typing.surge.sh/">
@@ -33,6 +33,16 @@
   "name": "シンプルタイピング",
   "url": "https://s-typing.surge.sh/"
 }
+</script>
+<script>
+(function(){
+  var ua = navigator.userAgent || "";
+  var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  var ipad = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  if(coarse || ipad || /Android|iPhone|iPad|iPod|Windows Phone/i.test(ua)){
+    document.documentElement.classList.add("is-touch");
+  }
+})();
 </script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap');
@@ -99,7 +109,6 @@
     padding:clamp(8px,2vh,16px) 16px;
   }
 
-  .mobile-warning-overlay,
   .custom-alert-overlay,
   .name-input-overlay,
   .input-mode-overlay{
@@ -107,21 +116,18 @@
     backdrop-filter:blur(6px);
   }
 
-  .mobile-warning-overlay.visible,
   .custom-alert-overlay.visible,
   .name-input-overlay.visible,
   .input-mode-overlay.visible{
     animation:overlay-fade-in 0.25s ease both;
   }
 
-  .mobile-warning-overlay.visible .mobile-warning-box,
   .custom-alert-overlay.visible .custom-alert-box,
   .name-input-overlay.visible .name-input-box,
   .input-mode-overlay.visible .input-mode-box{
     animation:popup-pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
   }
 
-  .mobile-warning-overlay.closing,
   .custom-alert-overlay.closing,
   .name-input-overlay.closing,
   .input-mode-overlay.closing{
@@ -130,7 +136,6 @@
     animation:overlay-fade-out 0.2s ease both;
   }
 
-  .mobile-warning-overlay.closing .mobile-warning-box,
   .custom-alert-overlay.closing .custom-alert-box,
   .name-input-overlay.closing .name-input-box,
   .input-mode-overlay.closing .input-mode-box{
@@ -158,19 +163,15 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .mobile-warning-overlay.visible,
     .custom-alert-overlay.visible,
     .name-input-overlay.visible,
     .input-mode-overlay.visible,
-    .mobile-warning-overlay.closing,
     .custom-alert-overlay.closing,
     .name-input-overlay.closing,
     .input-mode-overlay.closing,
-    .mobile-warning-overlay.visible .mobile-warning-box,
     .custom-alert-overlay.visible .custom-alert-box,
     .name-input-overlay.visible .name-input-box,
     .input-mode-overlay.visible .input-mode-box,
-    .mobile-warning-overlay.closing .mobile-warning-box,
     .custom-alert-overlay.closing .custom-alert-box,
     .name-input-overlay.closing .name-input-box,
     .input-mode-overlay.closing .input-mode-box{
@@ -311,75 +312,13 @@
   }
 
 
-  .mobile-warning-overlay{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(31,28,25,0.55);
-    align-items:center;
-    justify-content:center;
-    z-index:3000;
-    padding:20px;
-  }
 
-  .mobile-warning-overlay.visible{
-    display:flex;
-  }
 
-  .mobile-warning-box{
-    background:var(--washi);
-    border:1px solid var(--line);
-    border-radius:20px;
-    padding:28px 24px;
-    max-width:320px;
-    width:100%;
-    text-align:center;
-    box-shadow:0 10px 30px rgba(0,0,0,0.25);
-  }
 
-  .mobile-warning-message{
-    font-size:15px;
-    color:var(--ink);
-    margin:0 0 22px;
-    line-height:1.6;
-  }
 
-  .mobile-warning-check{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    margin:0 0 18px;
-    font-size:13px;
-    color:var(--ink);
-    cursor:pointer;
-    user-select:none;
-  }
 
-  .mobile-warning-check input{
-    width:16px;
-    height:16px;
-    margin:0;
-    accent-color:var(--hanko);
-    cursor:pointer;
-  }
 
-  .mobile-warning-btn{
-    padding:10px 32px;
-    background:var(--hanko);
-    color:var(--washi);
-    border:none;
-    border-radius:16px;
-    font-size:14px;
-    font-weight:600;
-    letter-spacing:0.05em;
-    cursor:pointer;
-    transition:background 0.2s ease;
-  }
 
-  .mobile-warning-btn:hover{
-    background:var(--hanko-deep);
-  }
 
   .custom-alert-overlay{
     display:none;
@@ -1756,6 +1695,196 @@
     }
   }
 
+  .custom-alert-overlay,
+  .name-input-overlay,
+  .input-mode-overlay{
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .custom-alert-box,
+  .name-input-box,
+  .input-mode-box,
+  .play-records-box{
+    margin:auto;
+  }
+
+  .play-records-box{
+    max-height:80vh;
+    max-height:80dvh;
+  }
+
+  .input-row{
+    display:flex;
+    gap:8px;
+    align-items:stretch;
+  }
+
+  #typing-input{
+    flex:1;
+    min-width:0;
+  }
+
+  .submit-btn{
+    display:none;
+    flex-shrink:0;
+    padding:0 18px;
+    background:var(--hanko);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .realtime-capture{
+    display:none;
+  }
+
+  .tap-hint{
+    display:none;
+    margin:0 0 10px;
+    padding:10px 14px;
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    color:#fff;
+    background:var(--pop-teal);
+    border-radius:12px;
+    animation:time-pulse 1.4s ease-in-out infinite;
+  }
+
+  .countdown-hint{
+    display:none;
+    margin-top:6px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+  }
+
+  .is-touch .submit-btn{
+    display:block;
+  }
+
+  .is-touch .realtime-capture{
+    display:block;
+    position:fixed;
+    top:0;
+    left:0;
+    width:1px;
+    height:1px;
+    padding:0;
+    border:0;
+    opacity:0;
+    font-size:16px;
+    pointer-events:none;
+    caret-color:transparent;
+  }
+
+  .is-touch .game.needs-focus .tap-hint{
+    display:block;
+  }
+
+  .is-touch #countdown.needs-focus .countdown-hint{
+    display:block;
+  }
+
+  .is-touch .keyboard-guide{
+    display:none !important;
+  }
+
+  html.is-touch{
+    overscroll-behavior-y:none;
+  }
+
+  .is-touch body{
+    min-height:var(--vvh,100dvh);
+    padding:calc(16px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px));
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+
+  .is-touch body.game-active{
+    height:var(--vvh,100dvh);
+    min-height:0;
+    overflow:hidden;
+    overscroll-behavior:none;
+    padding-top:calc(8px + env(safe-area-inset-top,0px));
+    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
+  }
+
+  .is-touch body.game-active .stage{
+    overflow-y:auto;
+  }
+
+  .is-touch body.game-active .panel{
+    padding:14px 12px;
+  }
+
+  .is-touch button,
+  .is-touch .game{
+    -webkit-user-select:none;
+    user-select:none;
+    -webkit-touch-callout:none;
+  }
+
+  .is-touch .mode-btn,
+  .is-touch .input-mode-btn{ min-height:44px; }
+  .is-touch .level-btn{ min-height:56px; }
+  .is-touch .start-btn{ min-height:50px; }
+  .is-touch .retry-btn{ min-height:48px; }
+  .is-touch .input-mode-close-btn,
+  .is-touch .custom-alert-btn,
+  .is-touch .name-input-btn{ min-height:44px; }
+  .is-touch .input-mode-toggle-btn{ height:40px; }
+  .is-touch .switch-player-btn,
+  .is-touch .menu-toggle-btn{ min-height:36px; }
+  .is-touch .edit-name-btn{ width:32px; height:32px; }
+  .is-touch .end-game-btn{ min-height:36px; padding:6px 14px; font-size:13px; margin-left:0; }
+  .is-touch .mute-check,
+  .is-touch .input-mode-setting-check{ width:20px; height:20px; }
+  .is-touch .input-mode-setting-label{ min-height:32px; }
+
+  .is-touch #word-display{
+    white-space:normal;
+    overflow:visible;
+    letter-spacing:0.05em;
+    line-height:1.4;
+    font-size:clamp(20px,6vw,30px);
+  }
+
+  .is-touch .sentence-reading-display{
+    white-space:normal;
+  }
+
+  @media (max-width:480px){
+    .start-row{ flex-direction:column; align-items:stretch; }
+    .start-btn{ width:100%; font-size:15px; padding:12px 18px; }
+    .level-btn .sub{ font-size:10px; }
+    .hud{ flex-wrap:wrap; justify-content:center; }
+    .hud-stat{ font-size:12px; padding:4px 10px; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+    .ranking-list{ gap:6px 8px; }
+    .ranking-item{ grid-template-columns:30px 1fr auto; padding:6px 8px; font-size:12px; }
+    .result-share .share-btn{ flex:1 1 45%; justify-content:center; }
+    .mode-and-mute-row{ gap:10px; }
+    .login-provider-list{ gap:8px; }
+    .friend-menu-row .start-btn{ width:100%; }
+  }
+
+  @media (max-width:360px){
+    .ranking-list{ grid-template-columns:1fr; }
+  }
+
+  @media (max-height:420px){
+    .is-touch .word-eyebrow,
+    .is-touch .hint,
+    .is-touch .timer-track{ display:none; }
+    .is-touch .word-frame{ padding:6px 10px; margin-bottom:6px; }
+    .is-touch .hud{ margin-bottom:6px; }
+    .is-touch body.game-active .panel{ padding:8px 10px; }
+  }
+
 </style>
 </head>
 <body>
@@ -1767,13 +1896,6 @@
     <p><a href="/terms/">利用規約</a> ／ <a href="/privacy/">プライバシーポリシー</a></p>
   </div>
 </noscript>
-<div class="mobile-warning-overlay" id="mobile-warning-overlay">
-  <div class="mobile-warning-box">
-    <p class="mobile-warning-message">このサイトはスマートフォンに最適化されていません。<br>パソコンでの閲覧を推奨します。</p>
-    <label class="mobile-warning-check"><input type="checkbox" id="mobile-warning-hide"><span>今後表示しない</span></label>
-    <button class="mobile-warning-btn" id="mobile-warning-close">閉じる</button>
-  </div>
-</div>
 <div class="app-loading-overlay" id="app-loading-overlay">
   <div class="app-loading-spinner"></div>
   <div class="app-loading-text">読み込み中...</div>
@@ -1868,7 +1990,7 @@
 
         <section class="about-section" id="about">
           <h2>シンプルタイピングについて</h2>
-          <p>シンプルタイピングは、登録なしですぐに遊べる無料のタイピング練習ゲームです。表示された言葉をローマ字入力やかな入力で素早く正確に打ち込み、制限時間内のスコアを競います。パソコンのキーボードでの練習に向いており、タイピングを始めたばかりの方から、さらに速度を伸ばしたい方まで楽しめます。</p>
+          <p>シンプルタイピングは、登録なしですぐに遊べる無料のタイピング練習ゲームです。表示された言葉をローマ字入力やかな入力で素早く正確に打ち込み、制限時間内のスコアを競います。パソコンでもスマートフォンでも遊べ、タイピングを始めたばかりの方から、さらに速度を伸ばしたい方まで楽しめます。</p>
 
           <h3>ひらがな・カタカナ・文章の3つのモード</h3>
           <p>ひらがなモードでは身近な言葉を、カタカナモードではカタカナ語を練習できます。文章モードでは短い一文を入力するため、実際の文章入力に近い感覚で練習できます。各モードは文字数に応じて初級・中級・上級に分かれているので、自分に合った難易度を選べます。</p>
@@ -1894,6 +2016,7 @@
 
     <div class="online-status" id="countdown">
       <div class="countdown-number" id="countdown-number">3</div>
+      <div class="countdown-hint">画面をタップしてキーボードを開いておこう</div>
     </div>
 
     <div class="online-status" id="friend-menu">
@@ -1945,10 +2068,12 @@
         <div id="romaji-display" class="romaji-display hidden"></div>
       </div>
 
+      <div class="tap-hint" id="tap-hint">タップしてキーボードを開く</div>
       <div class="ime-spacer" id="ime-spacer"></div>
 
       <div class="input-row">
-        <input type="text" id="typing-input" autocomplete="off" placeholder="ここに入力してください">
+        <input type="text" id="typing-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="ここに入力してください">
+        <button type="button" class="submit-btn" id="submit-btn">決定</button>
       </div>
       <div class="hint" id="hint-label">Enterで確定</div>
       <div class="keyboard-guide" id="keyboard-guide">
@@ -2052,8 +2177,11 @@
   </div>
 </div>
 
+<input type="text" id="realtime-capture" class="realtime-capture" inputmode="url" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="タイピング入力" tabindex="-1">
 <script src="typing-jp.js"></script>
 <script>
+const IS_TOUCH_DEVICE = document.documentElement.classList.contains("is-touch");
+const realtimeCaptureEl = document.getElementById("realtime-capture");
 const customAlertOverlayEl = document.getElementById("custom-alert-overlay");
 const customAlertMessageEl = document.getElementById("custom-alert-message");
 const customAlertBtnEl = document.getElementById("custom-alert-btn");
@@ -2743,7 +2871,96 @@ let onlineTimerId = null;
 let onlineTimeLeft = 100;
 let countdownTimerId = null;
 
+let captureComposing = false;
+
+function canAcceptRealtimeInput(){
+  return inputMode === "realtime" && gameEl.classList.contains("visible");
+}
+
+function feedRealtimeText(text){
+  for(const raw of text){
+    const ch = raw === "ー" || raw === "－" ? "-" : raw;
+    if(!/^[a-zA-Z\-]$/.test(ch)) continue;
+    if(!canAcceptRealtimeInput()) return;
+    handleRealtimeKey(ch.toLowerCase());
+  }
+}
+
+function drainCaptureInput(){
+  const text = realtimeCaptureEl.value;
+  realtimeCaptureEl.value = "";
+  feedRealtimeText(text);
+}
+
+function primeKeyboard(){
+  if(!IS_TOUCH_DEVICE) return;
+  realtimeCaptureEl.setAttribute("inputmode", inputMode === "realtime" ? "url" : "text");
+  try{ realtimeCaptureEl.focus({ preventScroll:true }); }catch(e){}
+}
+
+function focusTypingTarget(){
+  const target = inputMode === "realtime" ? (IS_TOUCH_DEVICE ? realtimeCaptureEl : null) : inputEl;
+  if(!target) return;
+  try{ target.focus({ preventScroll:true }); }catch(e){ target.focus(); }
+  updateTapHint();
+}
+
+function releaseKeyboard(){
+  if(!IS_TOUCH_DEVICE) return;
+  const active = document.activeElement;
+  if(active && active !== document.body && typeof active.blur === "function") active.blur();
+}
+
+function updateTapHint(){
+  if(!IS_TOUCH_DEVICE) return;
+  const typing = document.activeElement === realtimeCaptureEl || document.activeElement === inputEl;
+  gameEl.classList.toggle("needs-focus", !typing);
+  countdownEl.classList.toggle("needs-focus", !typing);
+}
+
+function syncViewportHeight(){
+  const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  document.documentElement.style.setProperty("--vvh", `${Math.round(height)}px`);
+  if(document.body.classList.contains("game-active")) window.scrollTo(0, 0);
+}
+
+if(IS_TOUCH_DEVICE){
+  realtimeCaptureEl.addEventListener("compositionstart", () => { captureComposing = true; });
+  realtimeCaptureEl.addEventListener("compositionend", () => {
+    captureComposing = false;
+    drainCaptureInput();
+  });
+  realtimeCaptureEl.addEventListener("input", (e) => {
+    if(captureComposing || e.isComposing) return;
+    drainCaptureInput();
+  });
+  document.addEventListener("focusin", updateTapHint);
+  document.addEventListener("focusout", () => setTimeout(updateTapHint, 0));
+  gameEl.addEventListener("click", (e) => {
+    if(e.target.closest("button")) return;
+    focusTypingTarget();
+  });
+  countdownEl.addEventListener("click", focusTypingTarget);
+  const submitBtnEl = document.getElementById("submit-btn");
+  submitBtnEl.addEventListener("pointerdown", (e) => e.preventDefault());
+  submitBtnEl.addEventListener("click", () => {
+    if(inputMode === "textbox" && gameEl.classList.contains("visible")) submitTextboxAnswer();
+  });
+  syncViewportHeight();
+  window.addEventListener("resize", syncViewportHeight);
+  window.addEventListener("orientationchange", syncViewportHeight);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", syncViewportHeight);
+    window.visualViewport.addEventListener("scroll", syncViewportHeight);
+  }
+  updateTapHint();
+}
+
 function fitSpacerToViewport(){
+  if(IS_TOUCH_DEVICE){
+    imeSpacerEl.style.height = "0px";
+    return;
+  }
   imeSpacerEl.style.height = "0px";
   requestAnimationFrame(() => {
     const contentHeight = document.documentElement.scrollHeight;
@@ -2851,6 +3068,7 @@ document.getElementById("retry-btn").addEventListener("click", () => {
 });
 
 function startOnlineSearch(){
+  primeKeyboard();
   setupEl.classList.add("hidden");
   searchingEl.classList.add("visible");
   let secondsLeft = 15;
@@ -2886,6 +3104,7 @@ function startOnlineSearch(){
 }
 
 function cancelSearch(){
+  releaseKeyboard();
   if(ws){ ws.close(); ws = null; }
   clearInterval(searchCountdownTimer);
   searchingEl.classList.remove("visible");
@@ -2903,6 +3122,7 @@ function isInGameFlow(){
 }
 
 function quitToTop(){
+  releaseKeyboard();
   clearInterval(timerId);
   clearInterval(onlineTimerId);
   clearInterval(countdownTimerId);
@@ -2973,6 +3193,7 @@ function startFriendJoin(){
     showCustomAlert("招待コードは数字のみ入力してください");
     return;
   }
+  primeKeyboard();
   friendJoinEl.classList.remove("visible");
   friendWaitingEl.classList.add("visible");
   connectFriendRoom(code, "guest");
@@ -2987,6 +3208,7 @@ function copyFriendCode(){
 }
 
 function cancelFriend(){
+  releaseKeyboard();
   if(friendWs){ friendWs.close(); friendWs = null; }
   friendRole = null;
   friendCreateEl.classList.remove("visible");
@@ -3096,7 +3318,7 @@ async function beginOnlineMatch(){
   inputEl.classList.remove("shake");
   resetHintLabel();
   fitSpacerToViewport();
-  inputEl.focus();
+  focusTypingTarget();
   clearInterval(onlineTimerId);
   onlineTimerId = setInterval(() => {
     onlineTimeLeft--;
@@ -3150,6 +3372,7 @@ function handleOnlineSubmit(typed){
 }
 
 function finishOnlineGame(msg){
+  releaseKeyboard();
   clearInterval(onlineTimerId);
   clearInterval(countdownTimerId);
   countdownEl.classList.remove("visible");
@@ -3215,7 +3438,11 @@ function renderWord(){
 }
 
 function resetHintLabel(){
-  hintLabelEl.textContent = inputMode === "realtime" ? "ローマ字でタイピングしよう" : "Enterで確定";
+  if(inputMode === "realtime"){
+    hintLabelEl.textContent = IS_TOUCH_DEVICE ? "英字キーボードでローマ字入力" : "ローマ字でタイピングしよう";
+  } else {
+    hintLabelEl.textContent = IS_TOUCH_DEVICE ? "「決定」ボタンで確定" : "Enterで確定";
+  }
 }
 
 function updateInputModeUI(){
@@ -3246,7 +3473,7 @@ function applyRomajiUppercaseUI(){
 
 function applyKeyboardUI(){
   if(!keyboardGuideEl) return;
-  const visible = inputMode === "realtime" && showKeyboard;
+  const visible = inputMode === "realtime" && showKeyboard && !IS_TOUCH_DEVICE;
   keyboardGuideEl.classList.toggle("visible", visible);
   showNextKey();
 }
@@ -3359,7 +3586,7 @@ function applyInputMode(mode){
   const isRealtime = inputMode === "realtime";
   if(showRomajiLabelEl) showRomajiLabelEl.classList.toggle("hidden", !isRealtime);
   if(romajiUppercaseLabelEl) romajiUppercaseLabelEl.classList.toggle("hidden", !isRealtime);
-  if(showKeyboardLabelEl) showKeyboardLabelEl.classList.toggle("hidden", !isRealtime);
+  if(showKeyboardLabelEl) showKeyboardLabelEl.classList.toggle("hidden", !isRealtime || IS_TOUCH_DEVICE);
   updateInputModeUI();
   applyKeyboardUI();
   if(inputMode === "realtime" && gameEl.classList.contains("visible")){
@@ -3503,11 +3730,12 @@ function handleRealtimeKey(key){
     hintLabelEl.textContent = "ちがうキーです";
     shakeRomaji();
     playSound(incorrectSoundEl);
+    if(IS_TOUCH_DEVICE && navigator.vibrate) navigator.vibrate(25);
     return result;
   }
 
   playSound(keySoundEl);
-  hintLabelEl.textContent = "ローマ字でタイピングしよう";
+  resetHintLabel();
   renderRomajiDisplay();
   updateSentenceProgressHighlight();
 
@@ -3535,6 +3763,10 @@ document.addEventListener("keyup", (e) => {
 });
 
 function fitWordDisplayFontSize(){
+  if(IS_TOUCH_DEVICE){
+    wordDisplayEl.style.fontSize = "";
+    return;
+  }
   const baseSize = parseFloat(getComputedStyle(wordDisplayEl).fontSize);
   const minSize = 12;
   let size = baseSize;
@@ -3571,6 +3803,7 @@ function nextWord(){
 }
 
 async function startGame(){
+  primeKeyboard();
   logPlay(currentMode, currentLevel, "solo", "");
   showAppLoadingOverlay();
   await ensureWordList(currentMode, currentLevel);
@@ -3604,7 +3837,7 @@ async function startGame(){
   timeLabelEl.classList.remove("time-warning");
   resetTimerFill();
   nextWord();
-  inputEl.focus();
+  focusTypingTarget();
   clearInterval(timerId);
   timerId = setInterval(() => {
     timeLeft--;
@@ -3637,6 +3870,7 @@ function runSoloCountdown(){
 }
 
 function endGame(isNormalEnd){
+  releaseKeyboard();
   clearInterval(timerId);
   gameEl.classList.remove("visible");
   headerEl.classList.remove("hidden");
@@ -3725,7 +3959,10 @@ inputEl.addEventListener("keydown", (e) => {
   if(e.key !== "Enter") return;
   if(isComposing || e.isComposing || e.keyCode === 229) return;
   e.preventDefault();
+  submitTextboxAnswer();
+});
 
+function submitTextboxAnswer(){
   const typed = inputEl.value.trim();
 
   if(isOnlineMode){
@@ -3747,7 +3984,7 @@ inputEl.addEventListener("keydown", (e) => {
   scoreLabelEl.textContent = `せいかい ${score} もん`;
   playSound(correctSoundEl);
   nextWord();
-});
+}
 
 document.addEventListener("visibilitychange", () => {
   if(document.visibilityState !== "hidden") return;
@@ -3850,28 +4087,7 @@ setInterval(() => {
 }, PRESENCE_PING_MS);
 
 (function(){
-  const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
-  if(!isMobile) return;
-  const STORAGE_KEY = "mobileWarningHidden";
-  try{
-    if(localStorage.getItem(STORAGE_KEY) === "1") return;
-  }catch(e){}
-  const overlay = document.getElementById("mobile-warning-overlay");
-  const closeBtn = document.getElementById("mobile-warning-close");
-  const hideCheck = document.getElementById("mobile-warning-hide");
-  overlay.classList.add("visible");
-  closeBtn.addEventListener("click", () => {
-    if(hideCheck.checked){
-      try{
-        localStorage.setItem(STORAGE_KEY, "1");
-      }catch(e){}
-    }
-    overlay.classList.remove("visible");
-  });
-})();
-
-(function(){
-  const selector = ".mobile-warning-overlay, .custom-alert-overlay, .name-input-overlay, .input-mode-overlay";
+  const selector = ".custom-alert-overlay, .name-input-overlay, .input-mode-overlay";
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const timers = new WeakMap();
 
