@@ -1970,6 +1970,7 @@
           <button type="button" class="ranking-tab active" data-period="total">全期間</button>
           <button type="button" class="ranking-tab" data-period="month">今月</button>
           <button type="button" class="ranking-tab" data-period="week">今週</button>
+          <button type="button" class="ranking-tab hidden" data-period="today">今日</button>
         </div>
         <div class="ranking-period-note" id="ranking-period-note"></div>
         <ol class="ranking-list" id="ranking-list"></ol>
@@ -2661,8 +2662,23 @@ function updateSetupHighScore(){
 let rankingRequestId = 0;
 let currentRankingPeriod = "total";
 const RANKING_DISPLAY_MAX = 20;
-const RANKING_PERIOD_LABELS = { total: "全期間", month: "今月", week: "今週" };
-const RANKING_PERIOD_NOTES = { total: "", month: "毎月1日 0:00にリセット", week: "毎週日曜 0:00にリセット" };
+const RANKING_PERIOD_LABELS = { total: "全期間", month: "今月", week: "今週", today: "今日" };
+const RANKING_TODAY_START = "2026-10-29";
+function isTodayRankingActive(){
+  const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  return jst.toISOString().slice(0, 10) >= RANKING_TODAY_START;
+}
+function getRankingPeriods(){
+  const list = ["total", "month", "week"];
+  if(isTodayRankingActive()) list.push("today");
+  return list;
+}
+(function showTodayTab(){
+  if(!isTodayRankingActive()) return;
+  const tab = document.querySelector('#ranking-tabs .ranking-tab[data-period="today"]');
+  if(tab) tab.classList.remove("hidden");
+})();
+const RANKING_PERIOD_NOTES = { total: "", today: "毎日 0:00にリセット", month: "毎月1日 0:00にリセット", week: "毎週日曜 0:00にリセット" };
 
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, (ch) => ({
@@ -2817,7 +2833,7 @@ async function submitScoreToRanking(gameId, mode, level, name){
       const shown = periods[currentRankingPeriod];
       renderRanking(shown ? shown.top20 : data.top20);
     }
-    const ranked = ["total", "month", "week"]
+    const ranked = getRankingPeriods()
       .filter(p => periods[p] && periods[p].rank)
       .map(p => `${RANKING_PERIOD_LABELS[p]}${periods[p].rank}位`);
     if(ranked.length > 0){
@@ -2846,7 +2862,7 @@ async function periodRankQualifies(score, mode, level, period){
 
 async function checkRankQualifies(score, mode, level){
   const results = await Promise.all(
-    ["total", "month", "week"].map(period => periodRankQualifies(score, mode, level, period))
+    getRankingPeriods().map(period => periodRankQualifies(score, mode, level, period))
   );
   return results.some(Boolean);
 }
