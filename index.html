@@ -2608,10 +2608,43 @@ window.addEventListener("load", () => {
 });
 let isMuted = localStorage.getItem("isMuted") === "true";
 
+let audioCtx = null;
+const soundBuffers = {};
+const soundEls = { click: clickSoundEl, key: keySoundEl, correct: correctSoundEl, incorrect: incorrectSoundEl };
+
+function initAudio(){
+  if(audioCtx) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return;
+  audioCtx = new AC({ latencyHint: "interactive" });
+  Object.keys(soundEls).forEach(async name => {
+    try{
+      const res = await fetch(`sounds/${name}.mp3`);
+      const buf = await res.arrayBuffer();
+      soundBuffers[name] = await new Promise((ok, ng) => audioCtx.decodeAudioData(buf, ok, ng));
+    }catch(e){}
+  });
+}
+
+["touchend", "click", "keydown"].forEach(type => {
+  window.addEventListener(type, () => {
+    initAudio();
+    if(audioCtx && audioCtx.state !== "running") audioCtx.resume();
+  }, { passive: true });
+});
+
 function playSound(baseAudio){
   if(isMuted) return;
-  const sound = baseAudio.cloneNode();
-  sound.play().catch(() => {});
+  const name = Object.keys(soundEls).find(k => soundEls[k] === baseAudio);
+  const buf = name && soundBuffers[name];
+  if(buf && audioCtx && audioCtx.state === "running"){
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start(0);
+    return;
+  }
+  baseAudio.cloneNode().play().catch(() => {});
 }
 
 document.addEventListener("click", (e) => {
