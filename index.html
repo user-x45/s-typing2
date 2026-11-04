@@ -81,7 +81,7 @@
   @keyframes popup-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
   @keyframes popup-out{from{opacity:1;transform:none;}to{opacity:0;transform:translateY(6px);}}
   @media (prefers-reduced-motion: reduce){
-    .custom-alert-overlay,.name-input-overlay,.input-mode-overlay,.custom-alert-box,.name-input-box,.input-mode-box,.tap-hint,.time-warning,.search-spinner,.app-loading-spinner{animation:none !important;}
+    .custom-alert-overlay,.name-input-overlay,.input-mode-overlay,.custom-alert-box,.name-input-box,.input-mode-box,.tap-hint,.time-warning,.search-spinner,.search-status-spinner,.app-loading-spinner{animation:none !important;}
   }
   .custom-alert-box,.name-input-box,.input-mode-box,.play-records-box{margin:auto;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:26px 22px;max-width:320px;width:100%;text-align:center;position:relative;}
   .play-records-box{max-width:420px;max-height:80vh;max-height:80dvh;display:flex;flex-direction:column;}
@@ -151,6 +151,17 @@
   .online-status.visible{display:block;}
   .status-title{font-size:18px;font-weight:700;margin-bottom:10px;}
   .search-count{font-size:20px;color:var(--ink-soft);margin-bottom:22px;}
+  .search-hint{margin:-8px 0 20px;font-size:12px;color:var(--ink-soft);}
+  .search-status{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 10px;font-size:13px;font-weight:700;color:var(--ink-soft);}
+  .search-status-spinner{width:14px;height:14px;flex-shrink:0;border-radius:50%;border:2px solid var(--rule);border-top-color:var(--accent);animation:spin 0.8s linear infinite;}
+  .search-status.ended .search-status-spinner{display:none;}
+  .search-status-time{font-variant-numeric:tabular-nums;color:var(--accent);}
+  .match-wait-banner{margin-bottom:22px;padding:16px 16px 14px;border:1.5px solid var(--accent);border-radius:8px;background:var(--sheet-2);text-align:center;}
+  .match-wait-title{font-size:16px;font-weight:900;margin-bottom:6px;}
+  .match-wait-text{margin:0 0 12px;font-size:13px;line-height:1.7;color:var(--ink-soft);}
+  .match-wait-banner .search-status{margin-bottom:12px;font-size:14px;color:var(--ink);}
+  .match-wait-cancel{padding:7px 18px;font-size:12px;}
+  .setup.waiting-online .start-btn.online-btn,.setup.waiting-online .ranking-box,.setup.waiting-online .info-box{display:none !important;}
   .countdown-number{font-family:var(--mincho);font-size:96px;font-weight:700;line-height:1;color:var(--accent);margin:16px 0 24px;}
   .game{display:none;}
   .game.visible{display:block;}
@@ -406,6 +417,12 @@
   <div class="panel">
 
     <div class="setup" id="setup">
+      <div class="match-wait-banner hidden" id="match-wait-banner">
+        <div class="match-wait-title">まだ対戦相手が見つかっていません</div>
+        <p class="match-wait-text">対戦相手が見つかりしだい、オンライン対戦に移行します。それまでの間にプレイするモードと難易度を選んで、ひとりで練習できます。</p>
+        <div class="search-status hidden" role="status"><span class="search-status-spinner"></span><span class="search-status-text"></span><span class="search-status-time"></span></div>
+        <button class="retry-btn match-wait-cancel" id="cancel-background-search-btn">さがすのをやめる</button>
+      </div>
       <div class="mode-tabs">
         <button class="mode-btn active" data-mode="hiragana">ひらがな</button>
         <button class="mode-btn" data-mode="katakana">カタカナ</button>
@@ -471,7 +488,7 @@
 
         <div class="info-title"><i class="fas fa-triangle-exclamation"></i> 注意事項</div>
         <ul class="info-list">
-          <li>オンライン対戦は相手が見つかるまで最大15秒お待ちいただきます。見つからない場合は時間をおいて再度お試しください。</li>
+          <li>オンライン対戦では、まず<span id="info-search-initial">10</span>秒間対戦相手を探します。見つからない場合は、見つかりしだいオンライン対戦に移行しますので、それまでの間ひとりで練習してお待ちいただけます。最大<span id="info-search-total">70</span>秒探しても見つからない場合は、時間をおいて再度お試しください。</li>
           <li>通信状況によっては、対戦中に相手が切断されることがあります。</li>
           <li>ランキングは総合スコアをもとに集計され、不正な行為が確認された場合は登録内容を削除する場合があります。</li>
           <li>名前は6文字まで登録できます。不適切な名前は運営により変更・削除される場合があります。</li>
@@ -497,15 +514,17 @@
     </div>
 
     <div class="online-status" id="searching">
-      <div class="status-title">対戦相手をさがしています</div>
+      <div class="status-title" id="search-title">対戦相手をさがしています</div>
       <div class="search-spinner"></div>
-      <div class="search-count" id="search-count-label">残り 15 秒</div>
+      <div class="search-count" id="search-count-label">残り 10 秒</div>
+      <div class="search-hint" id="search-hint">見つからない場合は、見つかるまでの間ひとりで練習できます</div>
       <button class="retry-btn" id="cancel-search-btn">キャンセル</button>
     </div>
 
     <div class="online-status" id="countdown">
       <div class="countdown-number" id="countdown-number">3</div>
       <div class="countdown-hint">画面をタップしてキーボードを開いておこう</div>
+      <div class="search-status hidden" role="status"><span class="search-status-spinner"></span><span class="search-status-text"></span><span class="search-status-time"></span></div>
     </div>
 
     <div class="online-status" id="friend-menu">
@@ -542,6 +561,7 @@
     </div>
 
     <div class="game" id="game">
+      <div class="search-status hidden" role="status"><span class="search-status-spinner"></span><span class="search-status-text"></span><span class="search-status-time"></span></div>
       <div class="hud">
         <span id="score-label" class="hud-stat">せいかい 0 もん</span>
         <span id="opponent-score-label" class="hud-stat hidden">あいて 0 もん</span>
@@ -585,6 +605,7 @@
     </div>
 
     <div class="result" id="result">
+      <div class="search-status hidden" role="status"><span class="search-status-spinner"></span><span class="search-status-text"></span><span class="search-status-time"></span></div>
       <div class="result-title">RESULT</div>
       <div class="result-score" id="result-score">0</div>
       <div class="result-sub" id="result-sub">総合スコア</div>
@@ -1048,6 +1069,9 @@ const headerEl = document.getElementById("site-header");
 const opponentScoreLabelEl = document.getElementById("opponent-score-label");
 const searchingEl = document.getElementById("searching");
 const searchCountLabelEl = document.getElementById("search-count-label");
+const searchTitleEl = document.getElementById("search-title");
+const searchHintEl = document.getElementById("search-hint");
+const matchWaitBannerEl = document.getElementById("match-wait-banner");
 const cancelSearchBtn = document.getElementById("cancel-search-btn");
 const countdownEl = document.getElementById("countdown");
 const countdownNumberEl = document.getElementById("countdown-number");
@@ -1063,6 +1087,14 @@ friendCodeInputEl.addEventListener("input", () => {
 
 const ONLINE_SERVER_URL = "wss://key-onl.user-x45.workers.dev";
 const RANKING_API_URL = ONLINE_SERVER_URL.replace(/^wss:/, "https:").replace(/^ws:/, "http:");
+
+const ONLINE_SEARCH_INITIAL_SECONDS = 10;
+const ONLINE_SEARCH_TOTAL_SECONDS = 70;
+const SEARCH_NOTICE_MS = 5000;
+const SEARCH_TICK_MS = 250;
+
+document.getElementById("info-search-initial").textContent = ONLINE_SEARCH_INITIAL_SECONDS;
+document.getElementById("info-search-total").textContent = ONLINE_SEARCH_TOTAL_SECONDS;
 
 const clickSoundEl = new Audio();
 const keySoundEl = new Audio();
@@ -1424,7 +1456,13 @@ let onlineChars = 0;
 let friendWs = null;
 let friendRole = null;
 let opponentScore = 0;
-let searchCountdownTimer = null;
+let lobbyWs = null;
+let lobbySearch = null;
+let searchTickTimer = null;
+let searchNotice = "";
+let searchNoticeTimer = null;
+let soloRunId = 0;
+let soloCountdownResolve = null;
 let onlineTimerId = null;
 let onlineTimeLeft = 100;
 let countdownTimerId = null;
@@ -1591,19 +1629,26 @@ function applyStateFromHash(){
     currentLevel = "beginner";
   }
 
+  syncModeLevelUI();
+}
+
+function syncModeLevelUI(){
   document.querySelectorAll(".mode-btn").forEach(b => {
     b.classList.toggle("active", b.dataset.mode === currentMode);
   });
-
   document.querySelectorAll(".levels").forEach(row => {
     row.classList.toggle("hidden", row.dataset.row !== currentMode);
     row.querySelectorAll(".level-btn").forEach(lb => {
       lb.classList.toggle("active", lb.dataset.level === currentLevel);
     });
   });
-
   loadRanking();
   updateSetupHighScore();
+}
+
+function syncUrlHashSilently(){
+  const hash = currentMode === "hiragana" && currentLevel === "beginner" ? "" : `#${currentMode}-${currentLevel}`;
+  history.replaceState(null, "", window.location.pathname + window.location.search + hash);
 }
 
 document.getElementById("footer-year").textContent = new Date().getFullYear();
@@ -1620,51 +1665,207 @@ window.addEventListener("hashchange", () => {
 document.getElementById("start-btn").addEventListener("click", startGame);
 document.getElementById("start-online-btn").addEventListener("click", startOnlineSearch);
 cancelSearchBtn.addEventListener("click", cancelSearch);
+document.getElementById("cancel-background-search-btn").addEventListener("click", () => endLobbySearch("cancel"));
 document.getElementById("retry-btn").addEventListener("click", () => {
   resultEl.classList.remove("visible");
   setupEl.classList.remove("hidden");
 });
 
+function getSearchRemaining(endsAt){
+  return Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+}
+
+function renderSearchStatus(){
+  const search = lobbySearch;
+  const background = Boolean(search && search.phase === "background");
+  const text = background ? "対戦相手をさがしています" : searchNotice;
+  const time = background ? `残り ${getSearchRemaining(search.totalEndsAt)} 秒` : "";
+  document.querySelectorAll(".search-status").forEach(el => {
+    el.classList.toggle("hidden", !text);
+    el.classList.toggle("ended", !background);
+    el.querySelector(".search-status-text").textContent = text;
+    el.querySelector(".search-status-time").textContent = time;
+  });
+  matchWaitBannerEl.classList.toggle("hidden", !background);
+  setupEl.classList.toggle("waiting-online", background);
+  if(search && search.phase === "initial"){
+    searchCountLabelEl.textContent = `残り ${getSearchRemaining(search.initialEndsAt)} 秒`;
+  }
+}
+
+function armSearchNoticeTimer(){
+  clearTimeout(searchNoticeTimer);
+  searchNoticeTimer = setTimeout(() => {
+    if(document.visibilityState === "hidden") return;
+    searchNotice = "";
+    renderSearchStatus();
+  }, SEARCH_NOTICE_MS);
+}
+
+function showSearchNotice(message){
+  searchNotice = message;
+  renderSearchStatus();
+  armSearchNoticeTimer();
+}
+
+function stopLobbySearch(){
+  clearInterval(searchTickTimer);
+  searchTickTimer = null;
+  const socket = lobbyWs;
+  lobbyWs = null;
+  lobbySearch = null;
+  if(socket){
+    socket.onmessage = null;
+    socket.onerror = null;
+    socket.onclose = null;
+    try{ socket.close(); }catch(e){}
+  }
+}
+
+function enterBackgroundSearch(){
+  lobbySearch.phase = "background";
+  releaseKeyboard();
+  searchingEl.classList.remove("visible");
+  setupEl.classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
+
+function tickSearch(){
+  const search = lobbySearch;
+  if(!search) return;
+  const now = Date.now();
+  if(now >= search.totalEndsAt){
+    endLobbySearch("timeout");
+    return;
+  }
+  if(search.phase === "initial" && now >= search.initialEndsAt){
+    enterBackgroundSearch();
+  }
+  renderSearchStatus();
+}
+
+function endLobbySearch(reason){
+  const search = lobbySearch;
+  if(!search) return;
+  stopLobbySearch();
+  if(search.phase === "initial"){
+    releaseKeyboard();
+    searchingEl.classList.remove("visible");
+    setupEl.classList.remove("hidden");
+  }
+  renderSearchStatus();
+  if(reason === "cancel") return;
+  const messages = {
+    timeout: "対戦相手が見つかりませんでした",
+    error: "サーバーに接続できませんでした",
+    hidden: "画面を離れたため、対戦相手の検索を中止しました"
+  };
+  const message = messages[reason] || messages.timeout;
+  if(!setupEl.classList.contains("hidden")){
+    showCustomAlert(message);
+  } else {
+    showSearchNotice(message);
+  }
+}
+
+function abortSoloCountdown(){
+  clearInterval(countdownTimerId);
+  countdownEl.classList.remove("visible");
+  if(soloCountdownResolve){
+    const resolve = soloCountdownResolve;
+    soloCountdownResolve = null;
+    resolve(false);
+  }
+}
+
+function takeOverForMatch(msg){
+  const search = lobbySearch;
+  const mode = search ? search.mode : currentMode;
+  const level = search ? search.level : currentLevel;
+  stopLobbySearch();
+  soloRunId++;
+  abortSoloCountdown();
+  clearInterval(timerId);
+  clearTimeout(searchNoticeTimer);
+  searchNotice = "";
+  gameSession = null;
+  isOnlineMode = false;
+  gameEl.classList.remove("visible");
+  resultEl.classList.remove("visible");
+  setupEl.classList.add("hidden");
+  headerEl.classList.remove("hidden");
+  document.body.classList.remove("game-active");
+  endGameBtn.classList.remove("hidden");
+  renderSearchStatus();
+  currentMode = mode;
+  currentLevel = level;
+  syncModeLevelUI();
+  syncUrlHashSilently();
+  searchTitleEl.textContent = "対戦相手が見つかりました";
+  searchCountLabelEl.textContent = "対戦の準備をしています…";
+  searchHintEl.classList.add("hidden");
+  searchingEl.classList.add("visible");
+  matchId = msg.matchId;
+  myRole = msg.role;
+  opponentName = msg.opponentName || "GUEST";
+  connectToMatch();
+}
+
 function startOnlineSearch(){
+  if(lobbySearch) return;
   primeKeyboard();
+  friendRole = null;
+  const now = Date.now();
+  const search = {
+    phase: "initial",
+    mode: currentMode,
+    level: currentLevel,
+    startedAt: now,
+    initialEndsAt: now + ONLINE_SEARCH_INITIAL_SECONDS * 1000,
+    totalEndsAt: now + ONLINE_SEARCH_TOTAL_SECONDS * 1000
+  };
+  lobbySearch = search;
+  clearTimeout(searchNoticeTimer);
+  searchNotice = "";
+  searchTitleEl.textContent = "対戦相手をさがしています";
+  searchHintEl.classList.remove("hidden");
   setupEl.classList.add("hidden");
   searchingEl.classList.add("visible");
-  let secondsLeft = 15;
-  searchCountLabelEl.textContent = `残り ${secondsLeft} 秒`;
+  renderSearchStatus();
   const myName = encodeURIComponent(normalizePlayerName(getPlayerName()));
-  ws = new WebSocket(`${ONLINE_SERVER_URL}/lobby?mode=${currentMode}&level=${currentLevel}&name=${myName}`);
-  ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    if(msg.type === "matched"){
-      clearInterval(searchCountdownTimer);
-      matchId = msg.matchId;
-      myRole = msg.role;
-      opponentName = msg.opponentName || "GUEST";
-      connectToMatch();
+  const socket = new WebSocket(`${ONLINE_SERVER_URL}/lobby?mode=${search.mode}&level=${search.level}&name=${myName}`);
+  lobbyWs = socket;
+  socket.onmessage = (event) => {
+    if(lobbyWs !== socket) return;
+    let msg;
+    try{ msg = JSON.parse(event.data); }catch(e){ return; }
+    if(msg.type === "searching"){
+      const seconds = Number(msg.seconds);
+      if(Number.isFinite(seconds) && seconds > 0){
+        search.totalEndsAt = search.startedAt + Math.max(seconds, ONLINE_SEARCH_INITIAL_SECONDS) * 1000;
+      }
+    } else if(msg.type === "matched"){
+      takeOverForMatch(msg);
     } else if(msg.type === "timeout"){
-      clearInterval(searchCountdownTimer);
-      cancelSearch();
-      showCustomAlert("対戦相手が見つかりませんでした");
+      endLobbySearch("timeout");
     }
   };
-  ws.onerror = () => {
-    clearInterval(searchCountdownTimer);
-    cancelSearch();
-    showCustomAlert("サーバーに接続できませんでした");
+  socket.onerror = () => {
+    if(lobbyWs === socket) endLobbySearch("error");
   };
-  searchCountdownTimer = setInterval(() => {
-    secondsLeft--;
-    searchCountLabelEl.textContent = `残り ${secondsLeft} 秒`;
-    if(secondsLeft <= 0){
-      clearInterval(searchCountdownTimer);
-    }
-  }, 1000);
+  socket.onclose = () => {
+    if(lobbyWs === socket) endLobbySearch("error");
+  };
+  searchTickTimer = setInterval(tickSearch, SEARCH_TICK_MS);
 }
 
 function cancelSearch(){
+  if(lobbySearch){
+    endLobbySearch("cancel");
+    return;
+  }
   releaseKeyboard();
   if(ws){ ws.close(); ws = null; }
-  clearInterval(searchCountdownTimer);
   searchingEl.classList.remove("visible");
   setupEl.classList.remove("hidden");
 }
@@ -1684,7 +1885,10 @@ function quitToTop(){
   clearInterval(timerId);
   clearInterval(onlineTimerId);
   clearInterval(countdownTimerId);
-  clearInterval(searchCountdownTimer);
+  stopLobbySearch();
+  soloRunId++;
+  abortSoloCountdown();
+  renderSearchStatus();
   if(ws){ ws.close(); ws = null; }
   if(friendWs){ friendWs.close(); friendWs = null; }
   friendRole = null;
@@ -2361,14 +2565,17 @@ function nextWord(){
 }
 
 async function startGame(){
+  const runId = ++soloRunId;
   primeKeyboard();
   logPlay(currentMode, currentLevel, "solo", "");
   showAppLoadingOverlay();
   await ensureWordList(currentMode, currentLevel);
   hideAppLoadingOverlay();
+  if(runId !== soloRunId) return;
   setupEl.classList.add("hidden");
   resultEl.classList.remove("visible");
-  await runSoloCountdown();
+  const countdownCompleted = await runSoloCountdown();
+  if(!countdownCompleted || runId !== soloRunId) return;
   gameEl.classList.add("visible");
   headerEl.classList.add("hidden");
   document.body.classList.add("game-active");
@@ -2410,6 +2617,7 @@ async function startGame(){
 
 function runSoloCountdown(){
   return new Promise(resolve => {
+    soloCountdownResolve = resolve;
     countdownEl.classList.add("visible");
     let count = 3;
     countdownNumberEl.textContent = count;
@@ -2421,7 +2629,8 @@ function runSoloCountdown(){
       } else {
         clearInterval(countdownTimerId);
         countdownEl.classList.remove("visible");
-        resolve();
+        soloCountdownResolve = null;
+        resolve(true);
       }
     }, 1000);
   });
@@ -2549,8 +2758,8 @@ document.addEventListener("visibilitychange", () => {
   } else if(friendCreateEl.classList.contains("visible") || friendWaitingEl.classList.contains("visible")){
     cancelFriend();
   } else if(countdownEl.classList.contains("visible")){
-    clearInterval(countdownTimerId);
-    countdownEl.classList.remove("visible");
+    soloRunId++;
+    abortSoloCountdown();
     if(ws){ ws.close(); ws = null; }
     setupEl.classList.remove("hidden");
   } else if(isOnlineMode){
@@ -2563,6 +2772,9 @@ document.addEventListener("visibilitychange", () => {
       result:"lose",
       forfeit:true
     });
+  }
+  if(lobbySearch && lobbySearch.phase === "background"){
+    endLobbySearch("hidden");
   }
 });
 
@@ -2581,6 +2793,7 @@ function computePresenceState(){
     activity = ws ? (friendRole ? "friend" : "online") : "solo";
   } else if(
     searchingEl.classList.contains("visible") ||
+    lobbySearch ||
     friendCreateEl.classList.contains("visible") ||
     friendWaitingEl.classList.contains("visible") ||
     friendJoinEl.classList.contains("visible")
@@ -2656,6 +2869,7 @@ document.addEventListener("visibilitychange", () => {
   } else {
     presenceRetry = 0;
     connectPresence();
+    if(searchNotice) armSearchNoticeTimer();
   }
 });
 
