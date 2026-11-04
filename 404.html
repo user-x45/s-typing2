@@ -1,100 +1,71 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - ページが見つかりません</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #333333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .container {
-            max-width: 500px;
-            width: 100%;
-        }
-        .error-code {
-            font-size: 96px;
-            font-weight: 800;
-            color: #2b2d42;
-            line-height: 1;
-            margin-bottom: 16px;
-            transition: color 0.3s ease;
-        }
-        .error-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #4a4e69;
-            margin-bottom: 12px;
-            transition: color 0.3s ease;
-        }
-        .error-message {
-            font-size: 15px;
-            color: #6c757d;
-            line-height: 1.6;
-            margin-bottom: 32px;
-            transition: color 0.3s ease;
-        }
-        .home-btn {
-            display: inline-block;
-            padding: 12px 28px;
-            background-color: #2b2d42;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 500;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-        .home-btn:hover {
-            background-color: #4a4e69;
-        }
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #121212;
-                color: #e0e0e0;
-            }
-            .error-code {
-                color: #f8f9fa;
-            }
-            .error-title {
-                color: #d1d5db;
-            }
-            .error-message {
-                color: #9ca3af;
-            }
-            .home-btn {
-                background-color: #3b82f6;
-                color: #ffffff;
-            }
-            .home-btn:hover {
-                background-color: #2563eb;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#eef1f4">
+<title>ページが見つかりません｜シンプルタイピング</title>
+<link href="/favicon/32.png" rel="icon" sizes="32x32" type="image/png">
+<link href="/favicon/96.png" rel="icon" sizes="96x96" type="image/png">
+<link href="/favicon/144.png" rel="icon" sizes="144x144" type="image/png">
+<link href="/favicon/180.png" rel="apple-touch-icon" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Shippori+Mincho:wght@500;700&display=swap">
+<style>
+  :root{
+    --paper:#eef1f4;--sheet:#fbfcfd;--ink:#2b2a2e;--ink-soft:#7a7680;--rule:#d3dae2;--accent:#e0563f;--accent-ink:#ffffff;
+    --ui:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",Meiryo,"メイリオ",sans-serif;
+    --mincho:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--paper:#0f1318;--sheet:#171c23;--ink:#f0eee9;--ink-soft:#a29d97;--rule:#2b343e;--accent:#e8724f;}
+  }
+  *{box-sizing:border-box;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  body{margin:0;min-height:100vh;min-height:100dvh;background:var(--paper);color:var(--ink);font-family:var(--ui);line-height:1.6;display:flex;justify-content:center;padding:40px 16px;}
+  .stage{width:100%;max-width:640px;}
+  .menu-bar{display:flex;align-items:center;margin-bottom:20px;padding:0 2px 16px;border-bottom:2px solid var(--ink);}
+  .menu-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;}
+  .menu-logo{height:28px;width:auto;display:block;}
+  .menu-title{font-weight:900;font-size:20px;letter-spacing:0.04em;}
+  .panel{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:48px 28px;text-align:center;}
+  .code{font-family:var(--mincho);font-size:96px;font-weight:700;line-height:1;color:var(--accent);margin:0 0 20px;}
+  h1{font-size:20px;font-weight:900;margin:0 0 10px;}
+  p{font-size:14px;color:var(--ink-soft);margin:0 0 28px;}
+  .home-btn{display:inline-block;padding:14px 36px;background:var(--accent);color:var(--accent-ink);border-radius:4px;font-size:16px;font-weight:900;letter-spacing:0.04em;text-decoration:none;transition:filter 0.15s ease;}
+  .home-btn:hover{filter:brightness(1.1);}
+  .home-btn:active{transform:translateY(1px);}
+  .site-footer{text-align:center;margin-top:20px;font-size:11px;color:var(--ink-soft);}
+  @media (max-width:480px){
+    body{padding:24px 10px;}
+    .panel{padding:36px 16px;}
+    .code{font-size:72px;}
+    .menu-title{font-size:17px;}
+    .menu-logo{height:24px;}
+    .home-btn{display:block;}
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="error-code">404</h1>
-        <h2 class="error-title">ページが見つかりません</h2>
-        <p class="error-message">お探しのページは削除されたか、URLが変更された可能性があります。<br>入力したアドレスが正しいかご確認ください。</p>
-        <a href="/" class="home-btn">トップページへ戻る</a>
-    </div>
+<div class="stage">
+  <div class="menu-bar">
+    <a href="/" class="menu-brand">
+      <img src="/logo.svg" alt="シンプルタイピング" class="menu-logo" width="28" height="28" decoding="async">
+      <span class="menu-title">シンプルタイピング</span>
+    </a>
+  </div>
+  <main class="panel">
+    <div class="code" aria-hidden="true">404</div>
+    <h1>ページが見つかりません</h1>
+    <p>お探しのページは移動または削除されたか、URLが間違っている可能性があります。</p>
+    <a href="/" class="home-btn">トップへ戻る</a>
+  </main>
+  <div class="site-footer">© <span id="year"></span> シンプルタイピング</div>
+</div>
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
