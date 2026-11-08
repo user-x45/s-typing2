@@ -29,7 +29,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <link rel="preload" as="image" href="logo.svg" fetchpriority="high">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Shippori+Mincho:wght@500;700&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
@@ -1314,105 +1313,11 @@ async function fetchWithRetry(url, options, attempts){
   return null;
 }
 
-let gameSession = null;
-const TURNSTILE_SITE_KEY = "0x4AAAAAAF0auo79JG2ipZ8a";
-let turnstileWidgetId = null;
-let turnstileContainer = null;
-let turnstilePending = null;
-
-function getTurnstileToken(){
-  return new Promise((resolve) => {
-    if(!window.turnstile){
-      resolve(null);
-      return;
-    }
-    if(!turnstileContainer){
-      turnstileContainer = document.createElement("div");
-      turnstileContainer.style.cssText = "position:fixed;bottom:8px;right:8px;z-index:9999";
-      document.body.appendChild(turnstileContainer);
-    }
-    if(turnstilePending) turnstilePending(null);
-    let settled = false;
-    const done = (token) => {
-      if(settled) return;
-      settled = true;
-      turnstilePending = null;
-      resolve(token);
-    };
-    turnstilePending = done;
-    const options = {
-      sitekey: TURNSTILE_SITE_KEY,
-      appearance: "interaction-only",
-      callback: (token) => done(token),
-      "error-callback": () => done(null),
-      "expired-callback": () => done(null)
-    };
-    try{
-      if(turnstileWidgetId === null){
-        turnstileWidgetId = window.turnstile.render(turnstileContainer, options);
-      } else {
-        window.turnstile.remove(turnstileWidgetId);
-        turnstileWidgetId = window.turnstile.render(turnstileContainer, options);
-      }
-    }catch(e){
-      done(null);
-    }
-    setTimeout(() => done(null), 20000);
-  });
-}
-
-async function postWithTurnstile(url, body, attempts){
-  for(let i = 0; i < attempts; i++){
-    const token = await getTurnstileToken();
-    if(token){
-      try{
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Turnstile-Token": token },
-          body: JSON.stringify(body)
-        });
-        if(res.ok) return res;
-      }catch(e){
-      }
-    }
-    if(i < attempts - 1){
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-    }
-  }
-  return null;
-}
-
-function startGameSession(mode, level){
-  gameSession = postWithTurnstile(`${RANKING_API_URL}/game/start?mode=${mode}&level=${level}`, {}, 2)
-    .then(res => res ? res.json() : null)
-    .then(data => data && data.gameId ? { gameId: data.gameId, mode, level } : null)
-    .catch(() => null);
-}
-
-async function finishGameSession(words, chars, miss){
-  const session = await gameSession;
-  gameSession = null;
-  if(!session) return null;
-  const res = await postWithTurnstile(`${RANKING_API_URL}/game/finish?mode=${session.mode}&level=${session.level}`, { gameId: session.gameId, words, chars, miss }, 3);
-  if(!res) return null;
-  try{
-    const data = await res.json();
-    return data && data.ok ? { gameId: session.gameId, score: data.score } : null;
-  }catch(e){
-    return null;
-  }
-}
-
-function showRankingError(){
-  resultRankBadgeEl.textContent = "通信の都合でランキングに登録できませんでした";
-  resultRankBadgeEl.classList.add("visible");
-}
-
-async function submitScoreToRanking(gameId, mode, level, name){
+async function submitScoreToRanking(score, mode, level, name){
   const res = await fetchWithRetry(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ gameId, name })
+    body: JSON.stringify({ score, name })
   }, 4);
   if(!res){
     showRankingError();
@@ -1459,17 +1364,12 @@ async function checkRankQualifies(score, mode, level){
   return results.some(Boolean);
 }
 
-async function handleRankingSubmission(mode, level, finishPromise){
-  const session = await finishPromise;
-  if(!session){
-    showRankingError();
-    return;
-  }
-  const qualifies = await checkRankQualifies(session.score, mode, level);
+async function handleRankingSubmission(mode, level, score){
+  const qualifies = await checkRankQualifies(score, mode, level);
   if(!qualifies) return;
   const name = normalizePlayerName(getPlayerName());
   if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.add("visible");
-  await submitScoreToRanking(session.gameId, mode, level, name);
+  await submitScoreToRanking(score, mode, level, name);
   if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.remove("visible");
 }
 
@@ -1832,7 +1732,6 @@ function takeOverForMatch(msg){
   clearInterval(timerId);
   clearTimeout(searchNoticeTimer);
   searchNotice = "";
-  gameSession = null;
   isOnlineMode = false;
   gameEl.classList.remove("visible");
   resultEl.classList.remove("visible");
@@ -2630,7 +2529,6 @@ async function startGame(){
   totalCharsTyped = 0;
   timeLeft = 100;
   usedWords = [];
-  startGameSession(currentMode, currentLevel);
   if(romajiDisplayEl){
     romajiDisplayEl.classList.remove("shake");
     romajiDisplayEl.scrollLeft = 0;
@@ -2693,7 +2591,6 @@ function endGame(isNormalEnd){
     const baseScore = score * 100 + speed * 2;
     const missPenalty = Math.min(missCount * 30, baseScore * 0.5);
     const finalScore = Math.max(0, Math.round(baseScore - missPenalty));
-    const finishPromise = finishGameSession(score, totalCharsTyped, missCount);
 
     resultScoreEl.textContent = finalScore;
     const modeLabel = modeLabels[currentMode] || "ひらがな";
@@ -2714,7 +2611,7 @@ function endGame(isNormalEnd){
     updateSetupHighScore();
 
     if(finalScore > 0){
-      handleRankingSubmission(currentMode, currentLevel, finishPromise);
+      handleRankingSubmission(currentMode, currentLevel, finalScore);
     }
     recordPlayResult(currentMode, currentLevel, accuracy, speed, missCount, finalScore);
   } else {
