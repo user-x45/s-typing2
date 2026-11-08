@@ -1,12 +1,4 @@
 <!DOCTYPE html>
-<!--
- ____  _                 _      _____                          
-/ ___|(_)_ __ ___  _ __ | | ___|_   _|   _ _ __ (_)_ __   __ _ 
-\___ \| | '_ ` _ \| '_ \| |/ _ \ | || | | | '_ \| | '_ \ / _` |
- ___) | | | | | | | |_) | |  __/ | || |_| | |_) | | | | | (_| |
-|____/|_|_| |_| |_| .__/|_|\___| |_| \__, | .__/|_|_| |_|\__, |
-                   |_|               |___/|_|            |___/ 
--->
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -43,6 +35,22 @@
 </script>
 <script>
 (function(){
+  var m = new Date().getMonth() + 1;
+  var season = m >= 3 && m <= 5 ? "spring" : m >= 6 && m <= 8 ? "summer" : m >= 9 && m <= 11 ? "autumn" : "winter";
+  document.documentElement.setAttribute("data-season", season);
+  var colors = {
+    spring: ["#f7eef1", "#1a1215"],
+    summer: ["#e8f4f7", "#0d161a"],
+    autumn: ["#f5eee4", "#17120e"],
+    winter: ["#eaeff7", "#0e121b"]
+  };
+  var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute("content", colors[season][dark ? 1 : 0]);
+})();
+</script>
+<script>
+(function(){
   var ua = navigator.userAgent || "";
   var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
   var ipad = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
@@ -61,6 +69,16 @@
   }
   @media (prefers-color-scheme: dark){
     :root{--paper:#0f1318;--sheet:#171c23;--sheet-2:#1e252d;--ink:#f0eee9;--ink-soft:#a29d97;--rule:#2b343e;--accent:#e8724f;--accent-ink:#ffffff;--miss:#f28762;}
+  }
+  html[data-season="spring"]{--paper:#f7eef1;--sheet:#fffcfd;--sheet-2:#f9eef2;--ink:#2e2a2c;--ink-soft:#82747a;--rule:#ecd5dd;--accent:#d94f73;--miss:#c4432e;}
+  html[data-season="summer"]{--paper:#e8f4f7;--sheet:#fafdfe;--sheet-2:#e6f1f5;--ink:#25292c;--ink-soft:#6a7b83;--rule:#cde0e7;--accent:#0a8fb3;--miss:#c4432e;}
+  html[data-season="autumn"]{--paper:#f5eee4;--sheet:#fdfaf5;--sheet-2:#f4ece0;--ink:#2f2924;--ink-soft:#85766a;--rule:#e4d4c0;--accent:#c4521b;--miss:#a93a22;}
+  html[data-season="winter"]{--paper:#eaeff7;--sheet:#fbfcff;--sheet-2:#edf1f9;--ink:#262a33;--ink-soft:#6c7487;--rule:#d0d8e8;--accent:#4468d0;--miss:#c4432e;}
+  @media (prefers-color-scheme: dark){
+    html[data-season="spring"]{--paper:#1a1215;--sheet:#231a1e;--sheet-2:#2c2025;--ink:#f3eceb;--ink-soft:#b09ea4;--rule:#3a2a31;--accent:#f0799a;--miss:#f28762;}
+    html[data-season="summer"]{--paper:#0d161a;--sheet:#121f25;--sheet-2:#19282f;--ink:#ecf1f2;--ink-soft:#94a8b0;--rule:#243640;--accent:#2db8dc;--miss:#f28762;}
+    html[data-season="autumn"]{--paper:#17120e;--sheet:#1f1914;--sheet-2:#28201a;--ink:#f2ebe2;--ink-soft:#ab9d90;--rule:#3a3027;--accent:#e07a3f;--miss:#f28762;}
+    html[data-season="winter"]{--paper:#0e121b;--sheet:#151a26;--sheet-2:#1c2230;--ink:#eef0f5;--ink-soft:#9aa3b8;--rule:#2a3347;--accent:#6f93f5;--miss:#f28762;}
   }
   *{box-sizing:border-box;}
   button,input,select,textarea{font-family:inherit;}
@@ -1313,12 +1331,28 @@ async function fetchWithRetry(url, options, attempts){
   return null;
 }
 
-async function submitScoreToRanking(score, mode, level, name){
+let currentPlayTokenPromise = null;
+
+function requestPlayToken(mode, level){
+  currentPlayTokenPromise = fetch(`${RANKING_API_URL}/ranking-start?mode=${mode}&level=${level}`, { method: "POST" })
+    .then(res => res.ok ? res.json() : null)
+    .then(data => data && data.playToken ? data.playToken : null)
+    .catch(() => null);
+}
+
+async function submitScoreToRanking(score, mode, level, name, stats){
   const res = await fetchWithRetry(`${RANKING_API_URL}/ranking?mode=${mode}&level=${level}&force=normal`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ score, name })
-  }, 4);
+    body: JSON.stringify({
+      score,
+      name,
+      playToken: stats.playToken,
+      correct: stats.correct,
+      miss: stats.miss,
+      chars: stats.chars
+    })
+  }, 1);
   if(!res){
     showRankingError();
     return;
@@ -1364,12 +1398,14 @@ async function checkRankQualifies(score, mode, level){
   return results.some(Boolean);
 }
 
-async function handleRankingSubmission(mode, level, score){
+async function handleRankingSubmission(mode, level, score, stats){
+  const playToken = await stats.playTokenPromise;
+  if(!playToken) return;
   const qualifies = await checkRankQualifies(score, mode, level);
   if(!qualifies) return;
   const name = normalizePlayerName(getPlayerName());
   if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.add("visible");
-  await submitScoreToRanking(score, mode, level, name);
+  await submitScoreToRanking(score, mode, level, name, { playToken, correct: stats.correct, miss: stats.miss, chars: stats.chars });
   if(rankingSubmittingIndicatorEl) rankingSubmittingIndicatorEl.classList.remove("visible");
 }
 
@@ -2529,6 +2565,7 @@ async function startGame(){
   totalCharsTyped = 0;
   timeLeft = 100;
   usedWords = [];
+  requestPlayToken(currentMode, currentLevel);
   if(romajiDisplayEl){
     romajiDisplayEl.classList.remove("shake");
     romajiDisplayEl.scrollLeft = 0;
@@ -2611,7 +2648,12 @@ function endGame(isNormalEnd){
     updateSetupHighScore();
 
     if(finalScore > 0){
-      handleRankingSubmission(currentMode, currentLevel, finalScore);
+      handleRankingSubmission(currentMode, currentLevel, finalScore, {
+        playTokenPromise: currentPlayTokenPromise,
+        correct: score,
+        miss: missCount,
+        chars: totalCharsTyped
+      });
     }
     recordPlayResult(currentMode, currentLevel, accuracy, speed, missCount, finalScore);
   } else {
